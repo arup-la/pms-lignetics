@@ -106,6 +106,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   #print-area,#print-area *{visibility:visible;}
   #print-area{position:fixed;inset:0;background:#fff;padding:20px;overflow:auto;}
 }
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
 /* DEADLINES PANEL */
 .deadline-table{width:100%;border-collapse:collapse;background:var(--bg2);border-radius:10px;overflow:hidden;border:1px solid var(--border);}
 .deadline-table th{padding:8px 12px;font-size:10px;font-weight:600;color:#fff;text-align:left;background:#1F3864;border-right:1px solid rgba(255,255,255,0.1);}
@@ -421,6 +422,12 @@ input[type=date]:focus{outline:none;border-color:var(--accent);}
 
 <!-- PM DASHBOARD -->
 <div class="view active" id="view-pm">
+  <!-- SharePoint sync status bar -->
+  <div id="sp-sync-bar" style="display:flex;align-items:center;gap:8px;padding:7px 12px;background:#fff;border:1px solid var(--border);border-radius:8px;margin-bottom:12px;font-size:11px;color:var(--text2);">
+    <div id="sp-dot" style="width:8px;height:8px;border-radius:50%;background:#EF9F27;flex-shrink:0;"></div>
+    <span id="sp-status">Connecting to SharePoint…</span>
+    <span style="margin-left:auto;cursor:pointer;color:var(--accent);font-weight:500;" onclick="spConnect()">↻ Reconnect</span>
+  </div>
   <div class="alert alert-info">⚡ <div><strong>Channel-level tracking:</strong> Progress and slippage are tracked independently per channel. Click any owner row in the tracker to expand their channels.</div></div>
   <div class="alert alert-warn">⧖ <div><strong>Arup Basu</strong> is acting temporary Rolling Stock owner until <strong>Sep 1, 2026</strong>. Stage 7 contract calendars pending for 3–4 channels by May 15, 2026.</div></div>
 
@@ -904,7 +911,96 @@ function initState(){
   });
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// SHAREPOINT INTEGRATION
+// ═══════════════════════════════════════════════════════════════════════════════
+const SP_SITE    = 'https://pelletheat.sharepoint.com/sites/CentralizedPurchasingTeam';
+const SP_API     = SP_SITE + '/_api/web/lists';
+const LIST_PROG  = 'PMSProgress';
+const LIST_Q8    = 'PMSQuestionnaires';
+
+let spConnected  = false;
+let spItemIds    = { prog:{}, q8:{} }; // cache SP item IDs to avoid duplicate POSTs
+
+function setSPStatus(state, msg){
+  const dot = document.getElementById('sp-dot');
+  const txt = document.getElementById('sp-status');
+  if(!dot||!txt) return;
+  const colors = { ok:'#639922', warn:'#EF9F27', error:'#E24B4A', syncing:'#378ADD' };
+  dot.style.background = colors[state] || colors.warn;
+  dot.style.animation  = state==='syncing' ? 'pulse 1s infinite' : 'none';
+  txt.textContent = msg;
+  spConnected = (state==='ok');
+}
+
+async function spGetDigest(){
+  const r = await fetch(SP_SITE+'/_api/contextinfo',{
+    method:'POST', credentials:'include',
+    headers:{'Accept':'application/json;odata=nometadata'}
+  });
+  if(!r.ok) throw new Error('Digest failed');
+  const d = await r.json();
+  return d.FormDigestValue;
+}
+
+async function spGet(list, filter){
+  const url = SP_API+`/GetByTitle('${list}')/items`+(filter?'?'+filter:'');
+  const r = await fetch(url,{
+    credentials:'include',
+    headers:{'Accept':'application/json;odata=nometadata'}
+  });
+  if(!r.ok) throw new Error('GET failed '+r.status);
+  const d = await r.json();
+  return d.value||[];
+}
+
+async function spPost(list, body){
+  const digest = await spGetDigest();
+  const r = await fetch(SP_API+`/GetByTitle('${list}')/items`,{
+    method:'POST', credentials:'include',
+    headers:{
+      'Accept':'application/json;odata=nometadata',
+      'Content-Type':'application/json',
+      'X-RequestDigest':digest
+    },
+    body: JSON.stringify(body)
+  });
+  if(!r.ok) throw new Error('POST failed '+r.status);
+  return await r.json();
+}
+
+async function spPatch(list, id, body){
+  const digest = await spGetDigest();
+  const r = await fetch(SP_API+`/GetByTitle('${list}')/items(${id})`,{
+    method:'POST', credentials:'include',
+    headers:{
+      'Accept':'application/json;odata=nometadata',
+      'Content-Type':'application/json',
+      'X-RequestDigest':digest,
+      'X-HTTP-Method':'MERGE',
+      'IF-MATCH':'*'
+    },
+    body: JSON.stringify(body)
+  });
+  return r.ok;
+}
+
+// Test connection
+async function spConnect(){
+  setSPStatus('syncing','Connecting to SharePoint…');
+  try{
+    await spGet(LIST_PROG,'$top=1');
+    setSPStatus('ok','SharePoint connected · data syncing in real time');
+    return true;
+  }catch(e){
+    setSPStatus('warn','SharePoint unavailable — saving locally. Open from SharePoint for sync.');
+    return false;
+  }
+}
+
+// ── LOAD STATE — SP first, localStorage fallback ──────────────────────────────
 async function loadState(){
+  // Always load localStorage first (instant)
   try{
     const r=localStorage.getItem('pms-v3-ch');
     if(r){
@@ -916,11 +1012,180 @@ async function loadState(){
       });
     }
   }catch(e){}
+
+  // Then try SP — overrides localStorage with freshest data
+  if(!spConnected) return;
+  try{
+    setSPStatus('syncing','Loading data from SharePoint…');
+    const items = await spGet(LIST_PROG,
+      '$select=Id,Title,OwnerID,Channel,StageNumber,Status,Applicable,PlannedStart,PlannedEnd,ActualStart,ActualEnd,Notes&$top=500');
+    items.forEach(item=>{
+      const oid=item.OwnerID, ch=item.Channel, s=parseInt(item.StageNumber);
+      if(!oid||!ch||!s) return;
+      if(!state[oid]||!state[oid][ch]||!state[oid][ch][s]) return;
+      // Cache SP item ID
+      if(!spItemIds.prog[oid]) spItemIds.prog[oid]={};
+      if(!spItemIds.prog[oid][ch]) spItemIds.prog[oid][ch]={};
+      spItemIds.prog[oid][ch][s]=item.Id;
+      // Apply SP data
+      Object.assign(state[oid][ch][s],{
+        status:   ({Complete:'done','In progress':'ip','Not started':'ns'}[item.Status])||'ns',
+        applicable: item.Applicable!=='No',
+        plannedStart: item.PlannedStart?item.PlannedStart.split('T')[0]:'',
+        plannedEnd:   item.PlannedEnd  ?item.PlannedEnd.split('T')[0]  :'',
+        actualStart:  item.ActualStart ?item.ActualStart.split('T')[0] :'',
+        actualEnd:    item.ActualEnd   ?item.ActualEnd.split('T')[0]   :'',
+        notes:    item.Notes||''
+      });
+    });
+    setSPStatus('ok',`SharePoint connected · ${items.length} records loaded · ${new Date().toLocaleTimeString()}`);
+    // Save merged data back to localStorage
+    localStorage.setItem('pms-v3-ch',JSON.stringify(state));
+  }catch(e){
+    setSPStatus('warn','Loaded from local storage — SharePoint sync unavailable');
+  }
 }
 
+// ── SAVE STATE — SP + localStorage ───────────────────────────────────────────
 async function saveState(){
+  // Always save locally first
   try{localStorage.setItem('pms-v3-ch',JSON.stringify(state));}catch(e){}
+  // Then sync to SP if connected
+  if(!spConnected) return;
+  // Save happens per-item in saveStageToSP — this is the bulk fallback
 }
+
+async function saveStageToSP(ownerId, ch, s){
+  if(!spConnected) return;
+  const o  = OWNERS.find(x=>x.id===ownerId);
+  const d  = state[ownerId][ch][s];
+  const STATUS_MAP = {done:'Complete', ip:'In progress', ns:'Not started'};
+  const body = {
+    Title:       `${ownerId}-${ch}-${s}`,
+    OwnerID:     ownerId,
+    OwnerName:   o?o.name:ownerId,
+    Channel:     ch,
+    StageNumber: s,
+    StageName:   STAGE_NAMES[s],
+    Phase:       PHASE_FOR[s].label,
+    Status:      STATUS_MAP[d.status]||'Not started',
+    Applicable:  d.applicable?'Yes':'No',
+    PlannedStart:d.plannedStart||null,
+    PlannedEnd:  d.plannedEnd||null,
+    ActualStart: d.actualStart||null,
+    ActualEnd:   d.actualEnd||null,
+    Notes:       d.notes||'',
+    LastUpdated: new Date().toISOString()
+  };
+  setSPStatus('syncing','Saving…');
+  try{
+    const existId = spItemIds.prog[ownerId]?.[ch]?.[s];
+    if(existId){
+      await spPatch(LIST_PROG, existId, body);
+    } else {
+      const res = await spPost(LIST_PROG, body);
+      if(res&&res.Id){
+        if(!spItemIds.prog[ownerId]) spItemIds.prog[ownerId]={};
+        if(!spItemIds.prog[ownerId][ch]) spItemIds.prog[ownerId][ch]={};
+        spItemIds.prog[ownerId][ch][s]=res.Id;
+      }
+    }
+    setSPStatus('ok',`Saved · ${new Date().toLocaleTimeString()}`);
+  }catch(e){
+    setSPStatus('warn','Saved locally — SharePoint sync failed');
+  }
+}
+
+// ── LOAD Q8 STATE ─────────────────────────────────────────────────────────────
+async function loadQ8State(){
+  // localStorage first
+  try{
+    const r=localStorage.getItem('pms-q8');
+    if(r){
+      const d=JSON.parse(r);
+      OWNERS.forEach(o=>{
+        if(d[o.id]){
+          o.channels.forEach(ch=>{if(d[o.id][ch]) q8State[o.id][ch]=d[o.id][ch];});
+          if(d[o.id]['__all__']) q8State[o.id]['__all__']=d[o.id]['__all__'];
+        }
+      });
+    }
+  }catch(e){}
+
+  // Then SP override
+  if(!spConnected) return;
+  try{
+    const items = await spGet(LIST_Q8,
+      '$select=Id,Title,OwnerID,Channel,A1,A2,A3,B1,B2,B3,B3Note,B4,C1,C2,C2Note,C3,D1,D2,D2Note,D3,E1,E2,E3&$top=200');
+    items.forEach(item=>{
+      const oid=item.OwnerID, ch=item.Channel;
+      if(!oid||!ch) return;
+      if(!spItemIds.q8[oid]) spItemIds.q8[oid]={};
+      spItemIds.q8[oid][ch]=item.Id;
+      if(!q8State[oid]) q8State[oid]={};
+      if(!q8State[oid][ch]) q8State[oid][ch]={};
+      // Map SP columns back to q8State keys
+      ['A1','A2','A3','B1','B2','B3','B3Note','C2','C2Note','C3','D2','D2Note','D3','E2','E3'].forEach(k=>{
+        if(item[k]!==undefined&&item[k]!==null) q8State[oid][ch][k]=item[k];
+      });
+      ['B4','C1','D1','E1'].forEach(k=>{
+        if(item[k]!==undefined&&item[k]!==null) q8State[oid][ch][k]=String(item[k]);
+      });
+    });
+    localStorage.setItem('pms-q8',JSON.stringify(q8State));
+  }catch(e){}
+}
+
+// ── SAVE Q8 STATE ─────────────────────────────────────────────────────────────
+async function saveQ8State(){
+  try{localStorage.setItem('pms-q8',JSON.stringify(q8State));}catch(e){}
+  if(!spConnected) return;
+}
+
+async function saveQ8ToSP(ownerId, ch){
+  if(!spConnected) return;
+  const o   = OWNERS.find(x=>x.id===ownerId);
+  const ans = q8State[ownerId]?.[ch]||{};
+  const answered = Object.keys(ans).filter(k=>!k.endsWith('Note')&&ans[k]).length;
+  const body = {
+    Title:       `${ownerId}-${ch}`,
+    OwnerID:     ownerId,
+    OwnerName:   o?o.name:ownerId,
+    Channel:     ch,
+    A1:ans.A1||'', A2:ans.A2||'', A3:ans.A3||'',
+    B1:ans.B1||'', B2:ans.B2||'', B3:ans.B3||'',
+    B3Note:ans['B3-note']||'',
+    B4:parseInt(ans.B4)||null,
+    C1:parseInt(ans.C1)||null,
+    C2:ans.C2||'', C2Note:ans['C2-note']||'',
+    C3:ans.C3||'',
+    D1:parseInt(ans.D1)||null,
+    D2:ans.D2||'', D2Note:ans['D2-note']||'',
+    D3:ans.D3||'',
+    E1:parseInt(ans.E1)||null,
+    E2:ans.E2||'', E3:ans.E3||'',
+    CompletionPct: Math.round((answered/15)*100),
+    LastUpdated:   new Date().toISOString()
+  };
+  setSPStatus('syncing','Saving questionnaire…');
+  try{
+    const existId = spItemIds.q8[ownerId]?.[ch];
+    if(existId){
+      await spPatch(LIST_Q8, existId, body);
+    } else {
+      const res = await spPost(LIST_Q8, body);
+      if(res&&res.Id){
+        if(!spItemIds.q8[ownerId]) spItemIds.q8[ownerId]={};
+        spItemIds.q8[ownerId][ch]=res.Id;
+      }
+    }
+    setSPStatus('ok',`Questionnaire saved · ${new Date().toLocaleTimeString()}`);
+  }catch(e){
+    setSPStatus('warn','Saved locally — SharePoint questionnaire sync failed');
+  }
+}
+
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // HELPERS
@@ -1054,7 +1319,9 @@ function cycleChannelStatus(ownerId,ch,s){
   const d=state[ownerId][ch][s];
   if(!d.applicable)return;
   d.status=STATUSES[(STATUSES.indexOf(d.status)+1)%STATUSES.length];
-  saveState();renderTracker();renderOwnerGrid();renderMetrics();if(masterGanttExpanded)renderMasterGantt();if(channelGanttExpanded)renderGantt();
+  saveState();
+  saveStageToSP(ownerId,ch,s);
+  renderTracker();renderOwnerGrid();renderMetrics();if(masterGanttExpanded)renderMasterGantt();if(channelGanttExpanded)renderGantt();
   if(document.getElementById('view-owner').classList.contains('active')) renderOwnerView(ownerId);
 }
 
@@ -1740,6 +2007,10 @@ function saveChannel(id,ch){
     if(noteEl) state[id][ch][s].notes=noteEl.value;
   }
   saveState();
+  // Sync all 15 stages to SharePoint
+  if(spConnected){
+    for(let s=1;s<=15;s++) saveStageToSP(id,ch,s);
+  }
   renderTracker();renderOwnerGrid();renderMetrics();if(masterGanttExpanded)renderMasterGantt();if(channelGanttExpanded)renderGantt();
   const ok=document.getElementById('save-ok');
   if(ok){ok.style.display='inline';setTimeout(()=>ok.style.display='none',3000);}
@@ -1838,25 +2109,6 @@ function initQ8State(){
     // Collective all-channels slot
     if(!q8State[o.id]['__all__']) q8State[o.id]['__all__']={};
   });
-}
-
-async function loadQ8State(){
-  try{
-    const r=localStorage.getItem('pms-q8');
-    if(r){
-      const d=JSON.parse(r);
-      OWNERS.forEach(o=>{
-        if(d[o.id]) o.channels.forEach(ch=>{
-          if(d[o.id][ch]) q8State[o.id][ch]=d[o.id][ch];
-        });
-        if(d[o.id]&&d[o.id]['__all__']) q8State[o.id]['__all__']=d[o.id]['__all__'];
-      });
-    }
-  }catch(e){}
-}
-
-async function saveQ8State(){
-  try{localStorage.setItem('pms-q8',JSON.stringify(q8State));}catch(e){}
 }
 
 function getQ8CompletionPct(ownerId,ch){
@@ -2035,18 +2287,17 @@ function confirmApplyToAll(ownerId){
 }
 
 async function applyToAllChannels(ownerId){
-  // First collect any unsaved textarea values
   await saveQ8All(ownerId);
   const allAns=q8State[ownerId]['__all__']||{};
   const o=OWNERS.find(x=>x.id===ownerId);
   if(!o)return;
-  // Copy to each channel
   o.channels.forEach(ch=>{
     if(!q8State[ownerId][ch]) q8State[ownerId][ch]={};
     Object.keys(allAns).forEach(k=>{ q8State[ownerId][ch][k]=allAns[k]; });
   });
   await saveQ8State();
-  // Re-render to show updated channel completion badges
+  // Sync each channel to SP
+  if(spConnected) o.channels.forEach(ch=>saveQ8ToSP(ownerId,ch));
   renderS8FormAll(ownerId);
   alert(`✓ Answers applied to all ${o.channels.length} channels. Switch to Per channel mode to review or override individual channels.`);
 }
@@ -2159,7 +2410,6 @@ function setQ8Rating(ownerId,ch,qId,val,btn){
 async function saveQ8(ownerId,ch){
   if(!q8State[ownerId]) q8State[ownerId]={};
   if(!q8State[ownerId][ch]) q8State[ownerId][ch]={};
-  // Collect all textarea values
   Q8_SECTIONS.forEach(sec=>sec.questions.forEach(q=>{
     const el=document.getElementById('q8-'+q.id);
     if(el) q8State[ownerId][ch][q.id]=el.value;
@@ -2167,9 +2417,8 @@ async function saveQ8(ownerId,ch){
     if(nel) q8State[ownerId][ch][q.id+'-note']=nel.value;
   }));
   await saveQ8State();
-  // Refresh form to update progress
+  await saveQ8ToSP(ownerId,ch);
   renderS8Form(ownerId,ch);
-  // Update channel dropdown completion %
   onS8OwnerChange();
   document.getElementById('s8-owner-sel').value=ownerId;
   document.getElementById('s8-channel-sel').value=ch;
@@ -3235,6 +3484,8 @@ function populateOwnerSelect(){
 async function init(){
   initState();
   initQ8State();
+  // Try SharePoint connection first, then load data
+  await spConnect();
   await loadState();
   await loadQ8State();
   populateOwnerSelect();
