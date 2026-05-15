@@ -1,0 +1,3252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PMS — Procurement Management System · Lignetics / Pellet Heat</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F5F4F1;--bg2:#fff;--bg3:#ECEAE5;
+  --text:#1a1a18;--text2:#5f5e5a;--text3:#888;
+  --border:#E0DED8;--border2:#C0BDB8;
+  --accent:#534AB7;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* LOGIN */
+#login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#1F3864 0%,#534AB7 100%);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;}
+.login-box{background:#fff;border-radius:16px;padding:36px 32px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+.login-logo{text-align:center;margin-bottom:24px;}
+.login-logo-icon{font-size:36px;margin-bottom:8px;}
+.login-logo-title{font-size:16px;font-weight:700;color:#1F3864;margin-bottom:2px;}
+.login-logo-sub{font-size:11px;color:#888;}
+.login-field{margin-bottom:14px;}
+.login-label{font-size:11px;font-weight:600;color:#5f5e5a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px;display:block;}
+.login-input{width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid #E0DED8;background:#F5F4F1;color:#1a1a18;font-size:13px;font-family:var(--font);transition:border-color 0.15s;}
+.login-input:focus{outline:none;border-color:#534AB7;background:#fff;}
+.login-btn{width:100%;padding:11px;border-radius:8px;background:#534AB7;color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);margin-top:6px;transition:opacity 0.15s;}
+.login-btn:hover{opacity:0.88;}
+.login-error{font-size:11px;color:#791F1F;background:#FCEBEB;border:1px solid #F09595;border-radius:6px;padding:8px 10px;margin-top:10px;display:none;text-align:center;}
+.login-welcome{font-size:12px;color:#5f5e5a;text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid #E0DED8;}
+
+/* TOPBAR */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:stretch;justify-content:space-between;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:200;box-shadow:0 1px 6px rgba(0,0,0,0.07);}
+.topbar-brand{display:flex;flex-direction:column;justify-content:center;padding:10px 0;}
+.topbar-title{font-size:13px;font-weight:600;color:var(--text);}
+.topbar-sub{font-size:10px;color:var(--text3);margin-top:1px;}
+.topbar-nav{display:flex;align-items:stretch;gap:0;}
+.tab{padding:0 16px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text2);border-bottom:3px solid transparent;transition:all 0.15s;white-space:nowrap;}
+.tab:hover{color:var(--text);background:var(--bg);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;}
+.user-badge{display:flex;align-items:center;gap:7px;padding:5px 10px;border-radius:8px;background:var(--bg);border:1px solid var(--border);}
+.user-avatar-sm{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
+.user-name-sm{font-size:11px;font-weight:500;color:var(--text);}
+.logout-btn{font-size:10px;color:#791F1F;background:#FCEBEB;border:1px solid #F09595;border-radius:6px;padding:2px 8px;cursor:pointer;font-family:var(--font);}
+
+/* VIEWS */
+.view{display:none;padding:20px;max-width:1140px;margin:0 auto;}
+.view.active{display:block;}
+.sec-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;}
+
+/* ALERTS */
+.alert{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:8px;font-size:11px;margin-bottom:12px;line-height:1.6;}
+.alert-info{background:#E6F1FB;color:#0C447C;border:1px solid #B5D4F4;}
+.alert-warn{background:#FAEEDA;color:#633806;border:1px solid #FAC775;}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:20px;}
+.metric{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+.metric-lbl{font-size:10px;color:var(--text3);margin-bottom:4px;}
+.metric-val{font-size:22px;font-weight:600;color:var(--text);}
+.metric-sub{font-size:10px;color:var(--text3);margin-top:2px;}
+
+/* OWNER GRID */
+.owner-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:20px;}
+.owner-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;transition:all 0.15s;}
+.owner-card:hover{box-shadow:0 2px 10px rgba(0,0,0,0.08);border-color:var(--border2);}
+.owner-card.temp{border-color:#EF9F27;}
+.oa{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;margin-bottom:8px;}
+.on{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.oc{font-size:10px;color:var(--text3);}
+.prog-wrap{height:4px;background:var(--border);border-radius:2px;margin-top:6px;}
+.prog-bar{height:4px;border-radius:2px;transition:width 0.3s;}
+.tbadge{display:inline-block;font-size:8px;font-weight:600;padding:1px 5px;border-radius:8px;background:#FAEEDA;color:#633806;margin-left:4px;vertical-align:middle;}
+
+/* PM TRACKER — expandable owner rows */
+.tracker-wrap{overflow-x:auto;margin-bottom:20px;}
+.tracker-table{width:100%;border-collapse:collapse;background:var(--bg2);border-radius:10px;overflow:hidden;border:1px solid var(--border);min-width:700px;}
+.tr-head th{padding:5px 6px;font-size:8px;font-weight:600;color:var(--text3);text-align:center;background:var(--bg3);border-bottom:1px solid var(--border);border-right:1px solid var(--border);}
+.tr-head th:first-child{text-align:left;padding-left:10px;min-width:170px;}
+.tr-owner td{border-bottom:1px solid var(--border);border-right:1px solid var(--border);}
+.tr-owner td:first-child{padding:7px 10px;font-size:11px;font-weight:600;background:#FAFAF8;cursor:pointer;user-select:none;}
+.tr-owner td:first-child:hover{background:var(--bg3);}
+.tr-channel td{border-bottom:1px solid rgba(0,0,0,0.05);border-right:1px solid var(--border);}
+.tr-channel td:first-child{padding:5px 8px 5px 24px;font-size:10px;color:var(--text2);background:var(--bg2);}
+.tr-channel{display:none;}
+.tr-channel.visible{display:table-row;}
+.dot{width:18px;height:18px;border-radius:50%;margin:auto;display:flex;align-items:center;justify-content:center;font-size:8px;border:1px solid var(--border);}
+.dot-ns{background:var(--bg3);}
+.dot-ip{background:#E6F1FB;border-color:#185FA5;color:#185FA5;}
+.dot-done{background:#EAF3DE;border-color:#3B6D11;color:#3B6D11;}
+.dot-late{background:#FCEBEB;border-color:#A32D2D;color:#A32D2D;}
+.dot-na{background:var(--bg3);color:#ccc;font-size:9px;}
+.dot-sum{width:18px;height:18px;border-radius:50%;margin:auto;font-size:8px;display:flex;align-items:center;justify-content:center;}
+.ph-1{background:#F1EFE8;color:#5F5E5A;}
+.ph-2{background:#EEEDFE;color:#3C3489;}
+.ph-3{background:#E1F5EE;color:#085041;}
+
+.print-btn{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);border:1px solid var(--border2);background:var(--bg2);color:var(--text);transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;}
+.print-btn:hover{background:var(--bg3);}
+.pdf-btn{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);border:none;background:#E24B4A;color:#fff;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;}
+.pdf-btn:hover{opacity:0.88;}
+@media print{
+  body *{visibility:hidden;}
+  #print-area,#print-area *{visibility:visible;}
+  #print-area{position:fixed;inset:0;background:#fff;padding:20px;overflow:auto;}
+}
+/* DEADLINES PANEL */
+.deadline-table{width:100%;border-collapse:collapse;background:var(--bg2);border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+.deadline-table th{padding:8px 12px;font-size:10px;font-weight:600;color:#fff;text-align:left;background:#1F3864;border-right:1px solid rgba(255,255,255,0.1);}
+.deadline-table td{padding:8px 12px;font-size:12px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);vertical-align:middle;}
+.deadline-table tr:last-child td{border-bottom:none;}
+.deadline-table tr:hover td{background:var(--bg3);}
+.urgency-badge{display:inline-block;font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.urgency-3{background:#FCEBEB;color:#791F1F;border:1px solid #F09595;}
+.urgency-7{background:#FAEEDA;color:#633806;border:1px solid #FAC775;}
+.urgency-ok{background:#EAF3DE;color:#27500A;border:1px solid #C0DD97;}
+.reminder-btn{padding:5px 12px;border-radius:6px;background:#0C447C;color:#fff;border:none;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--font);white-space:nowrap;transition:opacity 0.15s;}
+.reminder-btn:hover{opacity:0.85;}
+.reminder-btn.sent{background:#EAF3DE;color:#27500A;border:1px solid #C0DD97;}
+.no-deadlines{padding:16px;text-align:center;font-size:13px;color:var(--text3);background:var(--bg2);border:1px solid var(--border);border-radius:10px;}
+
+/* MASTER GANTT */
+.mg-stage-row{display:flex;align-items:center;gap:0;margin-bottom:5px;}
+.mg-label{width:180px;flex-shrink:0;font-size:11px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:6px;}
+.mg-phase-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+.mg-track-wrap{flex:1;display:flex;flex-direction:column;gap:2px;}
+.mg-bar-row{display:flex;align-items:center;gap:8px;}
+.mg-track{flex:1;height:18px;background:var(--bg3);border-radius:4px;position:relative;overflow:visible;}
+.mg-bar-bg{height:100%;border-radius:4px;position:absolute;top:0;opacity:0.25;}
+.mg-bar-fill{height:100%;border-radius:4px;position:absolute;top:0;transition:width 0.4s;}
+.mg-bar-label{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:9px;font-weight:600;color:#fff;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,0.3);}
+.mg-pct{width:38px;flex-shrink:0;font-size:11px;font-weight:600;text-align:right;color:var(--text);}
+.mg-slip{width:70px;flex-shrink:0;font-size:10px;text-align:center;}
+.mg-tl{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid transparent;}
+.tl-green{background:#EAF3DE;color:#27500A;border-color:#3B6D11;}
+.tl-amber{background:#FAEEDA;color:#633806;border-color:#EF9F27;}
+.tl-red{background:#FCEBEB;color:#791F1F;border-color:#E24B4A;}
+.tl-grey{background:#F1EFE8;color:#888;border-color:#C0BDB8;}
+.mg-header{display:flex;align-items:center;gap:0;margin-bottom:8px;font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;}
+.mg-phase-divider{display:flex;align-items:center;gap:8px;margin:10px 0 6px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;}
+.mg-phase-line{flex:1;height:1px;background:var(--border);}
+.mg-today-line{position:absolute;top:-2px;bottom:-2px;width:2px;z-index:3;border-radius:1px;}
+.mg-summary-row{display:flex;align-items:center;gap:0;margin-bottom:12px;padding:10px 12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);}
+
+/* GANTT */
+.gantt-container{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px;overflow-x:auto;}
+.gantt-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;}
+.gantt-legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);}
+.gantt-legend-swatch{width:12px;height:8px;border-radius:2px;}
+.export-btn{padding:5px 12px;border-radius:6px;background:var(--accent);color:#fff;border:none;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--font);}
+.export-btn:hover{opacity:0.88;}
+
+/* OWNER VIEW */
+.owner-select-row{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+select{padding:7px 12px;border-radius:8px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-size:13px;font-family:var(--font);cursor:pointer;}
+.ch-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.ch-tab{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg2);color:var(--text2);transition:all 0.15s;}
+.ch-tab.active{color:#fff;border-color:transparent;font-weight:600;}
+.stage-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:20px;}
+.stage-input-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;transition:opacity 0.2s;}
+.stage-input-card.na-card{opacity:0.45;background:var(--bg3);}
+.sic-phase{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;display:inline-block;padding:2px 6px;border-radius:4px;margin-bottom:4px;}
+.sic-num{font-size:10px;color:var(--text3);margin-bottom:2px;}
+.sic-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;line-height:1.3;}
+.sic-status{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;}
+.s-btn{padding:3px 8px;border-radius:8px;font-size:10px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:var(--font);transition:all 0.1s;}
+.s-btn.s-ns{background:#F1EFE8;color:#5F5E5A;border-color:#B4B2A9;}
+.s-btn.s-ip{background:#E6F1FB;color:#0C447C;border-color:#185FA5;}
+.s-btn.s-done{background:#EAF3DE;color:#27500A;border-color:#3B6D11;}
+.na-toggle{font-size:10px;cursor:pointer;padding:3px 8px;border-radius:8px;border:1px dashed var(--border2);background:transparent;color:var(--text3);font-family:var(--font);transition:all 0.1s;}
+.na-toggle.active-na{background:#F1EFE8;color:#888;border-color:#B4B2A9;}
+.date-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;}
+.date-field{display:flex;flex-direction:column;gap:3px;}
+.date-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;}
+.date-lbl.planned{color:#534AB7;}
+.date-lbl.actual{color:#0F6E56;}
+input[type=date]{width:100%;padding:5px 6px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:10px;font-family:var(--font);}
+input[type=date]:focus{outline:none;border-color:var(--accent);}
+.slippage-badge{font-size:9px;font-weight:600;padding:2px 7px;border-radius:8px;display:inline-block;margin-top:4px;}
+.slip-late{background:#FCEBEB;color:#791F1F;}
+.slip-ok{background:#EAF3DE;color:#27500A;}
+.slip-tbd{background:#F1EFE8;color:#888;}
+.slip-na{background:#F1EFE8;color:#aaa;}
+.save-row{display:flex;align-items:center;gap:8px;margin-top:8px;}
+.save-btn{padding:8px 20px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);}
+.save-btn:hover{opacity:0.88;}
+.save-ok{font-size:11px;color:#27500A;display:none;}
+.ch-prog-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:11px;color:var(--text3);}
+.ch-prog-bar-wrap{flex:1;height:6px;background:var(--border);border-radius:3px;}
+.ch-prog-bar{height:6px;border-radius:3px;}
+
+/* STAGE 8 QUESTIONNAIRE */
+.q-section-title{font-size:11px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;padding:8px 12px;background:var(--bg3);border-radius:8px;margin:16px 0 10px;border-left:3px solid var(--accent);}
+.q-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;}
+.q-label{font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px;line-height:1.4;}
+.q-hint{font-size:10px;color:var(--text3);margin-bottom:8px;font-style:italic;}
+.q-textarea{width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px;resize:vertical;min-height:64px;font-family:var(--font);}
+.q-textarea:focus{outline:none;border-color:var(--accent);}
+.q-radio-group{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;}
+.q-radio{padding:4px 14px;border-radius:20px;font-size:11px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:var(--font);transition:all 0.12s;}
+.q-radio.sel{background:var(--accent);color:#fff;border-color:var(--accent);}
+.q-rating{display:flex;gap:6px;}
+.q-rating-btn{width:36px;height:36px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-family:var(--font);transition:all 0.12s;}
+.q-rating-btn.sel{background:var(--accent);color:#fff;border-color:var(--accent);}
+.q-save-btn{padding:9px 22px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);}
+.q-save-btn:hover{opacity:0.88;}
+.q-save-ok{font-size:11px;color:#27500A;display:none;margin-left:10px;}
+.q-progress-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:11px;color:var(--text3);}
+.q-ch-tab{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg2);color:var(--text2);transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;}
+.q-ch-tab.active{color:#fff;border-color:transparent;font-weight:600;}
+.q-ch-tab .q-ch-pct{font-size:9px;opacity:0.8;}
+/* PM responses table */
+.resp-table{width:100%;border-collapse:collapse;font-size:11px;}
+.resp-table th{padding:7px 10px;background:#1F3864;color:#fff;font-size:10px;font-weight:600;text-align:left;border-right:1px solid rgba(255,255,255,0.1);}
+.resp-table td{padding:7px 10px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);vertical-align:top;}
+.resp-table tr:hover td{background:var(--bg3);}
+.resp-pct-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;}
+
+/* INSTRUCTIONS */
+.help-section{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.help-section-header{padding:14px 18px;display:flex;align-items:center;gap:12px;}
+.help-section-icon{font-size:22px;flex-shrink:0;}
+.help-section-title{font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;}
+.help-section-sub{font-size:10px;color:rgba(255,255,255,0.75);}
+.help-body{padding:16px 18px;}
+.help-step-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.help-step-row:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.help-step-num{width:26px;height:26px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;}
+.help-step-content{flex:1;}
+.help-step-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.help-step-body{font-size:11px;color:var(--text2);line-height:1.7;}
+.help-list{margin:6px 0 0 16px;display:flex;flex-direction:column;gap:3px;}
+.help-list li{font-size:11px;color:var(--text2);line-height:1.6;}
+.help-tip{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:8px;font-size:11px;color:#633806;background:#FAEEDA;border:1px solid #FAC775;margin-top:14px;line-height:1.6;}
+
+/* PROCESS FLOW */
+.wrap{padding:0;}
+.phase-group{margin-bottom:12px;}
+.kickoff-banner{background:#E6F1FB;border:1px solid #B5D4F4;border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:flex-start;gap:10px;}
+.kickoff-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+.kickoff-content{flex:1;}
+.kickoff-title{font-size:12px;font-weight:600;color:#0C447C;margin-bottom:3px;}
+.kickoff-sub{font-size:11px;color:#185FA5;line-height:1.5;}
+.kickoff-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+.kickoff-tag{font-size:9px;font-weight:600;padding:2px 8px;border-radius:10px;background:#B5D4F4;color:#042C53;}
+.tbd-warning{background:#FAEEDA;border:1px solid #FAC775;border-radius:8px;padding:8px 12px;margin:6px 0;font-size:11px;color:#633806;display:flex;align-items:flex-start;gap:8px;line-height:1.5;}
+.overlap-notice{background:#FAEEDA;border:1px solid #FAC775;border-radius:8px;padding:8px 12px;margin:6px 0;font-size:11px;color:#633806;display:flex;align-items:flex-start;gap:8px;line-height:1.5;}
+.phase-banner{border-radius:8px 8px 0 0;padding:8px 12px;font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;}
+.phase-banner-1{background:#B4B2A9;color:#2C2C2A;}.phase-banner-2{background:#AFA9EC;color:#26215C;}.phase-banner-3{background:#5DCAA5;color:#04342C;}
+.phase-banner-left{display:flex;flex-direction:column;gap:1px;}
+.phase-banner-label{font-size:12px;font-weight:600;}
+.phase-banner-sub{font-size:10px;opacity:0.75;}
+.phase-banner-right{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.phase-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;}
+.badge-1{background:#2C2C2A;color:#F1EFE8;}.badge-partial{background:#854F0B;color:#FAEEDA;}
+.badge-2{background:#3C3489;color:#EEEDFE;}.badge-3{background:#04342C;color:#9FE1CB;}
+.badge-inprog{background:#185FA5;color:#E6F1FB;}
+.stage-row{display:flex;align-items:stretch;gap:0;border:1px solid rgba(0,0,0,0.1);border-top:none;padding:8px;background:#f8f7f4;flex-wrap:wrap;row-gap:6px;}
+.phase-arrow{display:flex;align-items:center;justify-content:center;width:18px;flex-shrink:0;}
+.stage-box{flex:1;min-width:70px;border-radius:8px;padding:8px 7px 6px;cursor:pointer;transition:opacity 0.15s,box-shadow 0.15s;position:relative;}
+.stage-box:hover{opacity:0.88;}
+.stage-box.active{box-shadow:0 0 0 2px var(--pf-accent,#666);}
+.stage-num{font-size:9px;font-weight:600;opacity:0.65;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.05em;}
+.stage-title{font-size:10px;font-weight:600;line-height:1.3;}
+.stage-sub{font-size:9px;opacity:0.7;margin-top:2px;line-height:1.3;}
+.done-tick{position:absolute;top:5px;right:5px;width:13px;height:13px;background:#639922;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.done-tick svg{display:block;}
+.partial-tick{position:absolute;top:5px;right:5px;width:13px;height:13px;background:#EF9F27;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;font-weight:700;}
+.s1a{background:#F1EFE8;color:#2C2C2A;--pf-accent:#5F5E5A;}.s1b{background:#EAEAD3;color:#2C2C2A;--pf-accent:#5F5E5A;}
+.s1c{background:#E2E1C8;color:#2C2C2A;--pf-accent:#5F5E5A;}.s1d{background:#D8D7BC;color:#2C2C2A;--pf-accent:#5F5E5A;}
+.s1e{background:#CECDAF;color:#2C2C2A;--pf-accent:#5F5E5A;}.s1f{background:#C3C1A1;color:#2C2C2A;--pf-accent:#5F5E5A;}
+.s1g{background:#B8B693;color:#2C2C2A;--pf-accent:#EF9F27;}
+.p1s{background:#EEEDFE;color:#3C3489;--pf-accent:#534AB7;}.p2s{background:#E1F5EE;color:#085041;--pf-accent:#0F6E56;}
+.p3s{background:#FCEBEB;color:#791F1F;--pf-accent:#A32D2D;}.p4s{background:#FAEEDA;color:#633806;--pf-accent:#854F0B;}
+.p5s{background:#FBEAF0;color:#72243E;--pf-accent:#993556;}.p6s{background:#FAECE7;color:#712B13;--pf-accent:#993C1D;}
+.p7s{background:#E6F1FB;color:#0C447C;--pf-accent:#185FA5;}.p8s{background:#EAF3DE;color:#27500A;--pf-accent:#3B6D11;}
+.milestone-bar{border:1px solid rgba(0,0,0,0.1);border-top:none;border-radius:0 0 8px 8px;overflow:hidden;background:#fff;}
+.milestone-bar-header{padding:6px 12px 5px;font-size:10px;font-weight:600;color:#5f5e5a;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid rgba(0,0,0,0.1);display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.milestone-toggle{font-size:10px;color:#5f5e5a;background:none;border:none;cursor:pointer;font-family:var(--font);font-weight:600;}
+.milestone-content{display:none;padding:10px 12px 12px;}
+.milestone-content.visible{display:block;}
+.week-grid{display:grid;gap:6px;}
+.week-row{display:flex;align-items:flex-start;gap:8px;}
+.week-label{font-size:10px;font-weight:600;color:#5f5e5a;min-width:60px;padding-top:3px;flex-shrink:0;}
+.week-track{border-radius:4px;padding:5px 8px;font-size:11px;line-height:1.4;flex:1;}
+.wt-p0{background:#E6F1FB;border-left:3px solid #378ADD;}
+.wt-p1{background:#F1EFE8;border-left:3px solid #888780;}
+.wt-p2{background:#EEEDFE;border-left:3px solid #7F77DD;}
+.wt-p3{background:#E1F5EE;border-left:3px solid #1D9E75;}
+.wt-health{background:#EAF3DE;border-left:3px solid #639922;}
+.week-track-title{font-weight:600;font-size:11px;}
+.session-tag{display:inline-block;font-size:9px;font-weight:600;padding:1px 6px;border-radius:10px;margin-top:3px;margin-right:3px;}
+.st-done{background:#EAF3DE;color:#27500A;}.st-inprog{background:#E6F1FB;color:#0C447C;}
+.st-peer{background:#E6F1FB;color:#0C447C;}.st-working{background:#FAEEDA;color:#633806;}
+.st-milestone{background:#EAF3DE;color:#27500A;}.st-watchout{background:#FCEBEB;color:#791F1F;}
+.st-gate{background:#FBEAF0;color:#72243E;}.st-health{background:#EAF3DE;color:#27500A;}
+.st-kickoff{background:#E6F1FB;color:#0C447C;}
+.between-phases{display:flex;align-items:center;justify-content:center;padding:6px 0;gap:6px;font-size:10px;color:#5f5e5a;}
+.detail-panel{border:1px solid rgba(0,0,0,0.1);border-radius:10px;padding:14px 16px;margin-top:12px;background:#fff;}
+.detail-title{font-size:14px;font-weight:600;color:#1a1a18;margin-bottom:6px;}
+.detail-rationale{font-size:11px;color:#5f5e5a;border-left:3px solid rgba(0,0,0,0.2);padding-left:10px;margin-bottom:12px;line-height:1.5;}
+.deliv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin-top:8px;}
+.deliv-card{border-radius:8px;padding:9px 11px;font-size:11px;background:#F1EFE8;border:1px solid #D3D1C7;color:#2C2C2A;}
+.deliv-card.warn{background:#FCEBEB;border-color:#F09595;color:#791F1F;}
+.deliv-card.inprog{background:#FAEEDA;border-color:#FAC775;color:#633806;}
+.deliv-card-title{font-weight:600;margin-bottom:3px;font-size:11px;display:flex;align-items:center;gap:5px;}
+.deliv-done-dot{width:7px;height:7px;border-radius:50%;background:#639922;flex-shrink:0;}
+.deliv-prog-dot{width:7px;height:7px;border-radius:50%;background:#EF9F27;flex-shrink:0;}
+.deliv-warn-dot{width:7px;height:7px;border-radius:50%;background:#E24B4A;flex-shrink:0;}
+.score-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px;}
+.score-table th{text-align:left;padding:5px 8px;font-weight:600;color:#5f5e5a;font-size:10px;text-transform:uppercase;border-bottom:1px solid rgba(0,0,0,0.1);}
+.score-table td{padding:5px 8px;border-bottom:1px solid rgba(0,0,0,0.08);vertical-align:middle;}
+.score-bar-wrap{display:flex;align-items:center;gap:6px;}
+.score-bar{height:6px;border-radius:3px;flex-shrink:0;}
+.score-bar.high{background:#E24B4A;}.score-bar.med{background:#EF9F27;}.score-bar.low{background:#639922;}
+.score-label{font-size:10px;font-weight:600;}
+.score-label.high{color:#A32D2D;}.score-label.med{color:#854F0B;}.score-label.low{color:#3B6D11;}
+.priority-badge{display:inline-block;font-size:9px;font-weight:600;padding:1px 6px;border-radius:10px;}
+.pb-high{background:#FCEBEB;color:#791F1F;}.pb-med{background:#FAEEDA;color:#633806;}.pb-low{background:#EAF3DE;color:#27500A;}
+.score-note{font-size:11px;color:#5f5e5a;margin-top:8px;font-style:italic;border-left:3px solid rgba(0,0,0,0.15);padding-left:8px;line-height:1.5;}
+.risk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:8px;}
+.risk-card{border-radius:8px;padding:8px 10px;font-size:11px;}
+.risk-high{background:#FCEBEB;color:#791F1F;border:1px solid #F09595;}
+.risk-med{background:#FAEEDA;color:#633806;border:1px solid #FAC775;}
+.risk-low{background:#EAF3DE;color:#27500A;border:1px solid #C0DD97;}
+.sc-box{background:#f8f7f4;border-radius:8px;padding:12px 14px;margin-top:8px;}
+.sc-title{font-size:12px;font-weight:600;margin-bottom:6px;}
+.sc-steps{display:flex;flex-direction:column;gap:6px;}
+.sc-step{display:flex;align-items:flex-start;gap:8px;font-size:11px;color:#5f5e5a;}
+.sc-num{width:18px;height:18px;border-radius:50%;background:#FAEEDA;color:#633806;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0;}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:8px;}
+.p7-card{border-radius:8px;padding:8px 10px;font-size:11px;background:#E6F1FB;color:#0C447C;border:1px solid #B5D4F4;}
+.p7-card-title{font-weight:600;margin-bottom:3px;}
+.p8-card{border-radius:8px;padding:8px 10px;font-size:11px;background:#EAF3DE;color:#27500A;border:1px solid #C0DD97;}
+.p8-card-title{font-weight:600;margin-bottom:3px;}
+.action-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:8px;}
+.action-card{border-radius:8px;padding:10px 12px;font-size:11px;border:1px solid rgba(0,0,0,0.1);background:#f8f7f4;}
+.action-card-header{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
+.action-priority{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.ap-critical{background:#E24B4A;}.ap-high{background:#EF9F27;}.ap-med{background:#378ADD;}
+.action-card-title{font-size:11px;font-weight:600;}
+.action-card-body{font-size:10px;color:#5f5e5a;line-height:1.5;}
+.gate-box{background:#FBEAF0;border:1px solid #ED93B1;border-radius:8px;padding:10px 12px;margin-top:10px;font-size:11px;color:#72243E;}
+.gate-box-title{font-weight:600;margin-bottom:4px;}
+.channel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;}
+.channel-card{border-radius:8px;padding:8px 10px;font-size:12px;border:1px solid rgba(0,0,0,0.1);cursor:pointer;transition:box-shadow 0.15s;}
+.channel-card:hover{box-shadow:0 0 0 1.5px rgba(0,0,0,0.3);}
+.channel-card.tbd-card{border-color:#F09595;background:#FCEBEB;}
+.channel-name{font-weight:600;margin-bottom:2px;}
+.channel-owner{color:#5f5e5a;font-size:11px;}
+.owner-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;vertical-align:middle;}
+.blaine{background:#7F77DD;}.margaret{background:#1D9E75;}.luann{background:#EF9F27;}
+.johnc{background:#378ADD;}.tonyw{background:#639922;}.arup-dot{background:#BA7517;}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;}
+.legend-item{display:flex;align-items:center;font-size:11px;color:#5f5e5a;gap:5px;}
+.breakdown-panel{margin-top:14px;border-top:1px solid rgba(0,0,0,0.1);padding-top:12px;display:none;}
+.breakdown-panel.visible{display:block;}
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
+.cat-card{background:#f8f7f4;border-radius:8px;padding:10px 12px;font-size:11px;border-left:3px solid #0F6E56;}
+.cat-card-name{font-weight:600;margin-bottom:3px;font-size:12px;}
+.cat-card-sub{color:#5f5e5a;font-size:10px;font-style:italic;}
+.tab-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+.tab-btn{padding:4px 10px;border-radius:6px;border:1px solid rgba(0,0,0,0.2);background:transparent;font-size:11px;cursor:pointer;color:#5f5e5a;transition:all 0.12s;font-family:var(--font);}
+.tab-btn.active{background:#f8f7f4;color:#1a1a18;border-color:rgba(0,0,0,0.3);font-weight:600;}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid rgba(0,0,0,0.1);font-size:10px;color:#5f5e5a;display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;}
+.action-steps-title{font-size:12px;font-weight:600;margin-bottom:8px;margin-top:10px;}
+.action-step-row{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid rgba(0,0,0,0.08);font-size:11px;}
+.action-step-row:last-child{border-bottom:none;}
+.action-step-num{width:20px;height:20px;border-radius:50%;background:#FAECE7;color:#712B13;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex-shrink:0;margin-top:1px;}
+.action-step-content{flex:1;}
+.action-step-title{font-weight:600;}
+.action-step-sub{font-size:10px;color:#5f5e5a;margin-top:1px;}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">📦</div>
+      <div class="login-logo-title">Procurement Management System</div>
+      <div class="login-logo-sub">Lignetics / Pellet Heat &nbsp;·&nbsp; FY2026</div>
+    </div>
+    <div class="login-field">
+      <label class="login-label" for="li-email">Email address</label>
+      <input class="login-input" type="email" id="li-email" placeholder="yourname@lignetics.com" onkeydown="if(event.key==='Enter')document.getElementById('li-pw').focus()">
+    </div>
+    <div class="login-field">
+      <label class="login-label" for="li-pw">Password</label>
+      <input class="login-input" type="password" id="li-pw" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Sign in</button>
+    <div class="login-error" id="login-error">Incorrect email or password. Please try again.</div>
+    <div class="login-welcome">Restricted access &nbsp;·&nbsp; Channel owners &amp; PM only<br>Contact <strong>abasu@lignetics.com</strong> for access issues</div>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar" id="main-topbar" style="display:none;">
+  <div class="topbar-brand">
+    <div class="topbar-title">Procurement Management System — Lignetics / Pellet Heat</div>
+    <div class="topbar-sub">FY2026 · 15 stages · 3 phases · 15 channels · 6 owners</div>
+  </div>
+  <div class="topbar-nav">
+    <button class="tab active" onclick="switchTab('pm')">📊 PM Dashboard</button>
+    <button class="tab" onclick="switchTab('owner')">👤 Owner View</button>
+    <button class="tab" onclick="switchTab('channels')">📋 Channels & Owners</button>
+    <button class="tab" onclick="switchTab('s8')">📝 Stage 8 Questionnaire</button>
+    <button class="tab" onclick="switchTab('flow')">🔀 Process Flow</button>
+    <button class="tab" onclick="switchTab('help')">❓ Instructions</button>
+    <div style="display:flex;align-items:center;padding:0 12px;border-left:1px solid var(--border);margin-left:4px;gap:8px;">
+      <div class="user-badge" id="user-badge"></div>
+      <button class="logout-btn" onclick="doLogout()">Sign out</button>
+    </div>
+  </div>
+</div>
+
+<!-- PM DASHBOARD -->
+<div class="view active" id="view-pm">
+  <div class="alert alert-info">⚡ <div><strong>Channel-level tracking:</strong> Progress and slippage are tracked independently per channel. Click any owner row in the tracker to expand their channels.</div></div>
+  <div class="alert alert-warn">⧖ <div><strong>Arup Basu</strong> is acting temporary Rolling Stock owner until <strong>Sep 1, 2026</strong>. Stage 7 contract calendars pending for 3–4 channels by May 15, 2026.</div></div>
+
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:20px;overflow:hidden;">
+    <!-- Collapsed header — always visible -->
+    <div id="deadlines-header" onclick="toggleDeadlines()"
+      style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;user-select:none;transition:background 0.15s;"
+      onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='var(--bg2)'">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:14px;">🔔</span>
+        <span style="font-size:12px;font-weight:600;color:var(--text);">Upcoming deadlines</span>
+        <span id="deadlines-summary-badge" style="font-size:10px;color:var(--text3);"></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="export-btn" style="background:#0C447C;font-size:10px;padding:3px 10px;"
+          onclick="event.stopPropagation();renderDeadlines()">↻ Refresh</button>
+        <span id="deadlines-chevron" style="font-size:13px;color:var(--text3);transition:transform 0.2s;display:inline-block;">▾</span>
+      </div>
+    </div>
+    <!-- Expandable body -->
+    <div id="deadlines-body" style="display:none;border-top:1px solid var(--border);padding:12px 14px;">
+      <div id="deadlines-panel"></div>
+      <div style="font-size:10px;color:var(--text3);margin-top:8px;">
+        Clicking <strong>Send reminder</strong> opens a pre-drafted email in Outlook — review and send from there. Only stages not yet marked Complete are shown.
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-title">Program overview</div>
+  <div class="metrics" id="pm-metrics"></div>
+  <div class="sec-title">Channel owner progress <span style="font-size:10px;font-weight:400;color:#888;text-transform:none;letter-spacing:0;margin-left:6px;">click any card to open owner view</span></div>
+  <div class="owner-grid" id="pm-owner-grid"></div>
+  <div class="sec-title">Stage tracker by channel <span style="font-size:10px;font-weight:400;color:#888;text-transform:none;letter-spacing:0;margin-left:6px;">click owner row to expand · click dot to cycle status</span></div>
+  <div class="tracker-wrap" id="tracker-wrap"></div>
+  <!-- Master Gantt — collapsible -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:20px;overflow:hidden;">
+    <div onclick="toggleGantt('master')"
+      style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;user-select:none;transition:background 0.15s;"
+      onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='var(--bg2)'">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:13px;">📊</span>
+        <span style="font-size:12px;font-weight:600;color:var(--text);">Master Gantt — program-level · all channels combined</span>
+      </div>
+      <span id="master-gantt-chevron" style="font-size:13px;color:var(--text3);transition:transform 0.2s;">▾</span>
+    </div>
+    <div id="master-gantt-body" style="display:none;border-top:1px solid var(--border);">
+      <div class="gantt-container" id="master-gantt-container" style="margin-bottom:0;border:none;border-radius:0;">
+        <div id="master-gantt-inner"></div>
+        <div class="gantt-legend" id="master-gantt-legend" style="margin-top:12px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Channel Gantt — collapsible -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:20px;overflow:hidden;">
+    <div onclick="toggleGantt('channel')"
+      style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;user-select:none;transition:background 0.15s;"
+      onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='var(--bg2)'">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:13px;">📈</span>
+        <span style="font-size:12px;font-weight:600;color:var(--text);">Gantt chart — planned vs actual by channel</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="export-btn" onclick="event.stopPropagation();exportXLSX()">⬇ Export to Excel (.xlsx)</button>
+        <span id="channel-gantt-chevron" style="font-size:13px;color:var(--text3);transition:transform 0.2s;">▾</span>
+      </div>
+    </div>
+    <div id="channel-gantt-body" style="display:none;border-top:1px solid var(--border);">
+      <div class="gantt-container" style="margin-bottom:0;border:none;border-radius:0;overflow-x:auto;">
+        <svg id="gantt-svg" style="min-width:600px;display:block;"></svg>
+        <div class="gantt-legend" id="gantt-legend"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OWNER VIEW -->
+<div class="view" id="view-owner">
+  <div class="owner-select-row">
+    <div class="sec-title" style="margin:0;">Select owner</div>
+    <select id="owner-sel" onchange="onOwnerChange()"><option value="">— select your name —</option></select>
+  </div>
+  <div id="owner-view-content"><div style="font-size:13px;color:#888;padding:24px 0;">Select your name above to view and update your channels.</div></div>
+</div>
+
+<!-- CHANNELS & OWNERS -->
+<div class="view" id="view-channels">
+  <div style="margin-bottom:16px;">
+    <div style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:3px;">Channels &amp; Owners</div>
+    <div style="font-size:12px;color:var(--text3);">15 channels · 6 owners · FY2026 program · read-only reference</div>
+  </div>
+  <div id="channels-content"></div>
+</div>
+
+<!-- STAGE 8 QUESTIONNAIRE -->
+<div class="view" id="view-s8">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+    <div>
+      <div style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:3px;">Stage 8 — Current State Questionnaire</div>
+      <div style="font-size:12px;color:var(--text3);">One form per channel · answers saved automatically · PM sees all responses</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <!-- Response mode toggle -->
+      <div style="display:flex;align-items:center;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:4px;gap:2px;" id="s8-mode-toggle">
+        <button id="s8-mode-all" onclick="setS8Mode('all')"
+          style="padding:6px 14px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;border:none;font-family:var(--font);transition:all 0.15s;background:var(--accent);color:#fff;">
+          📋 All channels (single response)
+        </button>
+        <button id="s8-mode-per" onclick="setS8Mode('per')"
+          style="padding:6px 14px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;border:none;font-family:var(--font);transition:all 0.15s;background:transparent;color:var(--text2);">
+          🗂 Per channel
+        </button>
+      </div>
+      <div id="s8-pm-toggle" style="display:none;">
+        <button class="export-btn" style="background:#1F3864;" onclick="switchS8View('responses')">📊 View all responses</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mode description banner -->
+  <div id="s8-mode-banner" style="margin-bottom:14px;padding:8px 14px;border-radius:8px;font-size:11px;line-height:1.6;background:#EEEDFE;color:#26215C;border:1px solid #AFA9EC;">
+    <strong>All channels mode:</strong> Fill in one set of answers covering all your channels collectively. Use the <strong>Apply to all channels</strong> button to copy your answers across — you can still open individual channels afterwards to add specific details or overrides.
+  </div>
+
+  <!-- Owner/channel selector -->
+  <div id="s8-selector" style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+    <div class="sec-title" style="margin:0;">Select owner</div>
+    <select id="s8-owner-sel" onchange="onS8OwnerChange()">
+      <option value="">— select your name —</option>
+    </select>
+    <select id="s8-channel-sel" style="display:none;" onchange="onS8ChannelChange()">
+      <option value="">— select channel —</option>
+    </select>
+  </div>
+
+  <!-- Form area -->
+  <div id="s8-form-area"><div style="font-size:13px;color:#888;padding:24px 0;">Select your name and a channel to begin the questionnaire.</div></div>
+
+  <!-- PM master responses view -->
+  <div id="s8-responses-area" style="display:none;"></div>
+</div>
+
+<!-- INSTRUCTIONS -->
+<div class="view" id="view-help">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+    <div>
+      <div style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:3px;">Instructions — PMS Channel Owner App</div>
+      <div style="font-size:12px;color:var(--text3);">Quick reference guide · Lignetics / Pellet Heat · FY2026</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="print-btn" onclick="printInstructions('owner')">🖨 Print owner guide</button>
+      <button class="print-btn" onclick="printInstructions('pm')" id="help-pm-btn">🖨 Print PM guide</button>
+    </div>
+  </div>
+
+  <!-- OWNER SECTION -->
+  <div class="help-section" id="help-owner-section">
+    <div class="help-section-header" style="background:#1F3864;">
+      <span class="help-section-icon">👤</span>
+      <div>
+        <div class="help-section-title">Channel Owner Guide</div>
+        <div class="help-section-sub">For: Margaret Graese · Luann Lafreniere · John Crass · Tony Woods · Arup Basu (Rolling Stock)</div>
+      </div>
+    </div>
+    <div class="help-body">
+
+      <div class="help-step-row">
+        <div class="help-step-num" style="background:#1F3864;">1</div>
+        <div class="help-step-content">
+          <div class="help-step-title">Logging in</div>
+          <div class="help-step-body">Open the app file in any browser (Chrome, Edge, or Safari). Enter your <strong>email address</strong> and <strong>personal password</strong> — both will be shared with you at app roll-out. Your session stays active for 8 hours so you won't need to log in repeatedly during the day.</div>
+        </div>
+      </div>
+
+      <div class="help-step-row">
+        <div class="help-step-num" style="background:#1F3864;">2</div>
+        <div class="help-step-content">
+          <div class="help-step-title">Updating your stage progress — Owner View tab</div>
+          <div class="help-step-body">Click the <strong>👤 Owner View</strong> tab. Select your name from the dropdown — your channels appear as tabs at the top. For each channel, work through the stage cards and:
+            <ul class="help-list">
+              <li>Click a status button — <em>Not started</em>, <em>In progress</em>, or <em>Complete</em></li>
+              <li>Enter your <strong>planned start and end dates</strong> (blue labels)</li>
+              <li>Enter your <strong>actual start and end dates</strong> once work is underway (green labels)</li>
+              <li>Add any <strong>notes</strong> in the free-text field at the bottom of each card</li>
+              <li>Use <strong>Mark N/A</strong> to exclude a stage that does not apply to your channel — it will be greyed out and excluded from your progress calculations</li>
+            </ul>
+            Click <strong>💾 Save</strong> when done. Switch between channels using the tabs.
+          </div>
+        </div>
+      </div>
+
+      <div class="help-step-row">
+        <div class="help-step-num" style="background:#1F3864;">3</div>
+        <div class="help-step-content">
+          <div class="help-step-title">Stage 8 questionnaire — Stage 8 Questionnaire tab</div>
+          <div class="help-step-body">Click the <strong>📝 Stage 8 Questionnaire</strong> tab. Choose your preferred response mode using the toggle at the top:
+            <ul class="help-list">
+              <li><strong>All channels</strong> — fill in one set of answers covering all your channels. Click <em>Apply to all channels</em> to copy across, then switch to Per channel mode to add specific overrides</li>
+              <li><strong>Per channel</strong> — answer each channel separately using the channel tabs</li>
+            </ul>
+            The questionnaire has <strong>15 questions across 5 sections</strong>: Channel &amp; Spend · Supplier Landscape · Contracts &amp; Documentation · Spend Visibility &amp; Process · Capacity &amp; Readiness. Click <strong>💾 Save</strong> at any time — you can return and continue later.
+          </div>
+        </div>
+      </div>
+
+      <div class="help-step-row">
+        <div class="help-step-num" style="background:#1F3864;">4</div>
+        <div class="help-step-content">
+          <div class="help-step-title">Printing or saving your channel summary</div>
+          <div class="help-step-body">In the Owner View, scroll to the bottom of any channel and click <strong>🖨 Print</strong> to open a formatted one-page summary in a new window — you can print to paper or save as PDF from the browser's print dialog. Click <strong>📄 Save as PDF</strong> to download a self-contained file with your initials and a timestamp in the filename.</div>
+        </div>
+      </div>
+
+      <div class="help-step-row">
+        <div class="help-step-num" style="background:#1F3864;">5</div>
+        <div class="help-step-content">
+          <div class="help-step-title">Other tabs available to you</div>
+          <div class="help-step-body">
+            <ul class="help-list">
+              <li><strong>📋 Channels &amp; Owners</strong> — quick reference showing all 15 channels, their owners, sub-categories, and live progress</li>
+              <li><strong>🔀 Process Flow</strong> — the full interactive 15-stage methodology, always available for reference</li>
+              <li><strong>📊 PM Dashboard</strong> — program-level view; you can view this but updates are made in your Owner View</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="help-tip">
+        <span style="font-size:14px;">💡</span>
+        <div><strong>Need help?</strong> Contact Arup Basu at <strong>abasu@lignetics.com</strong> for any questions, access issues, or corrections to your channel information.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PM SECTION -->
+  <div class="help-section" id="help-pm-section" style="margin-top:20px;">
+    <div class="help-section-header" style="background:#0F6E56;">
+      <span class="help-section-icon">📊</span>
+      <div>
+        <div class="help-section-title">Program Manager Guide</div>
+        <div class="help-section-sub">For: Arup Basu · Blaine Emery (PM full access)</div>
+      </div>
+    </div>
+    <div class="help-body">
+
+      <div class="help-step-row">
+        <div class="help-step-num" style="background:#0F6E56;">1</div>
+        <div class="help-step-content">
+          <div class="help-step-title">PM Dashboard — program overview</div>
+          <div class="help-step-body">The <strong>📊 PM Dashboard</strong> is your home tab. It shows:
+            <ul class="help-list">
+              <li><strong>🔔 Upcoming deadlines</strong> — click to expand; shows all stages due within 7 days across all channels with urgency badges. Click <em>Send reminder</em> to open a pre-drafted Outlook email to the relevant owner — review and send</li>
+              <li><strong>Program metrics</strong> — overall completion %, stages complete, in progress, overdue, and RS handover date</li>
+              <li><strong>Owner progress cards</strong> — click any card to jump directly to that owner's view</li>
+              <li><strong>Stage tracker</strong> — click any owner row to expand their channel sub-rows; click any dot to cycle stage status (Not started → In progress → Complete)</li>
+              <li><strong>Master Gantt</strong> — click to expand; 15 stage bars with completion %, slippage, and traffic lights 🟢 🟡 🔴</li>
+              <li><strong>Channel Gantt</strong> — click to expand; 15 channel bars showing planned window (hollow) vs actual progress (solid fill)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="help-step-row">
+        <div class="help-step-num" style="background:#0F6E56;">2</div>
+        <div class="help-step-content">
+          <div class="help-step-title">Updating stage data on behalf of owners</div>
+          <div class="help-step-body">Go to <strong>👤 Owner View</strong>, select an owner from the dropdown, and update their channels exactly as the owner would. All changes are saved to the same local storage — click <strong>💾 Save</strong> to commit. You can also click any dot directly in the PM Dashboard tracker to cycle an owner's stage status without leaving the dashboard.</div>
+        </div>
+      </div>
+
+      <div class="help-step-row">
+        <div class="help-step-num" style="background:#0F6E56;">3</div>
+        <div class="help-step-content">
+          <div class="help-step-title">Viewing Stage 8 questionnaire responses</div>
+          <div class="help-step-body">Go to <strong>📝 Stage 8 Questionnaire</strong>. Click the <strong>📊 View all responses</strong> button (visible to PM only) to see a master table of all 15 channels with completion %. Click any row to expand and read the full answers for that channel inline. This view is read-only — answers can only be edited by the owner.</div>
+        </div>
+      </div>
+
+      <div class="help-step-row">
+        <div class="help-step-num" style="background:#0F6E56;">4</div>
+        <div class="help-step-content">
+          <div class="help-step-title">Exporting to Excel</div>
+          <div class="help-step-body">Click <strong>⬇ Export to Excel (.xlsx)</strong> on the PM Dashboard (in the Channel Gantt header). The file downloads with a date and time stamp in the filename and contains <strong>5 tabs</strong>:
+            <ul class="help-list">
+              <li><strong>Stage Data</strong> — all 15 channels × 15 stages with status, dates, slippage, and notes</li>
+              <li><strong>Master Gantt</strong> — program-level summary with traffic lights per stage</li>
+              <li><strong>Gantt Chart</strong> — weekly colour-coded channel bars Feb–Oct 2026</li>
+              <li><strong>Stage 8 Questionnaire</strong> — all owner responses, one row per question per channel</li>
+              <li><strong>Legend</strong> — colour coding and symbol reference</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="help-step-row">
+        <div class="help-step-num" style="background:#0F6E56;">5</div>
+        <div class="help-step-content">
+          <div class="help-step-title">Sending deadline reminders</div>
+          <div class="help-step-body">The <strong>🔔 Upcoming deadlines</strong> panel at the top of the PM Dashboard scans all channels for stages due within 7 days that are not yet complete. Click <strong>✉ Send reminder</strong> next to any item to open a pre-drafted email in Outlook addressed to the relevant owner, with the stage details and urgency level pre-filled. Review the email and click Send. The button turns green once actioned.</div>
+        </div>
+      </div>
+
+      <div class="help-step-row">
+        <div class="help-step-num" style="background:#0F6E56;">6</div>
+        <div class="help-step-content">
+          <div class="help-step-title">Traffic light key</div>
+          <div class="help-step-body">
+            <ul class="help-list">
+              <li>🟢 <strong>Green</strong> — on track (≥80% complete or all applicable stages done)</li>
+              <li>🟡 <strong>Amber</strong> — in progress / watch (≥40% complete or at least one stage active)</li>
+              <li>🔴 <strong>Red</strong> — action needed (one or more stages past their planned end date)</li>
+              <li>⚫ <strong>Grey</strong> — not yet started (future stage, no activity)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="help-tip" style="background:#E1F5EE;border-color:#5DCAA5;color:#085041;">
+        <span style="font-size:14px;">💡</span>
+        <div><strong>Rolling Stock:</strong> Arup Basu is acting as temporary channel owner until <strong>Sep 1, 2026</strong>. Update the app when the permanent owner joins — contact your administrator to update credentials and channel assignments.</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- PROCESS FLOW -->
+<div class="view" id="view-flow">
+  <div style="max-width:960px;">
+    <div style="margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid var(--border);">
+      <div style="font-size:18px;font-weight:600;">Procurement Management System — Channel Owner Process</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:3px;">15-stage methodology across 3 phases &nbsp;·&nbsp; 15 channels &nbsp;·&nbsp; FY2026 program</div>
+    </div>
+    <div id="pf-content"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════════════════════════
+const USERS={
+  'abasu@lignetics.com':       {password:'PMS2026!',    ownerId:'arup',    name:'Arup Basu',        role:'pm'},
+  'bemery@lignetics.com':      {password:'Blaine2026',  ownerId:'blaine',  name:'Blaine Emery',     role:'pm'},
+  'mgraese@lignetics.com':     {password:'Margaret2026',ownerId:'margaret',name:'Margaret Graese',  role:'owner'},
+  'llafreniere@lignetics.com': {password:'Luann2026',   ownerId:'luann',   name:'Luann Lafreniere', role:'owner'},
+  'jcrass@lignetics.com':      {password:'John2026',    ownerId:'johnc',   name:'John Crass',       role:'owner'},
+  'twoods@lignetics.com':      {password:'Tony2026',    ownerId:'tonyw',   name:'Tony Woods',       role:'owner'},
+};
+let currentUser=null;
+
+function doLogin(){
+  const email=document.getElementById('li-email').value.trim().toLowerCase();
+  const pass=document.getElementById('li-pw').value;
+  const errEl=document.getElementById('login-error');
+  const user=USERS[email];
+  if(!user||user.password!==pass){errEl.style.display='block';document.getElementById('li-pw').value='';return;}
+  errEl.style.display='none';
+  currentUser={...user,email};
+  try{sessionStorage.setItem('pms-sess',JSON.stringify({email,ts:Date.now()}));}catch(e){}
+  showApp();
+}
+
+function doLogout(){
+  currentUser=null;
+  try{sessionStorage.removeItem('pms-sess');}catch(e){}
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('main-topbar').style.display='none';
+  document.querySelectorAll('.view').forEach(v=>v.style.display='none');
+  document.getElementById('li-email').value='';
+  document.getElementById('li-pw').value='';
+}
+
+function restoreSession(){
+  try{
+    const s=sessionStorage.getItem('pms-sess');
+    if(!s)return false;
+    const {email,ts}=JSON.parse(s);
+    if(Date.now()-ts>8*60*60*1000){sessionStorage.removeItem('pms-sess');return false;}
+    const user=USERS[email];
+    if(!user)return false;
+    currentUser={...user,email};
+    return true;
+  }catch(e){return false;}
+}
+
+function showApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('main-topbar').style.display='flex';
+  document.querySelectorAll('.view').forEach(v=>v.style.display='');
+  const o=OWNERS.find(x=>x.id===currentUser.ownerId);
+  const initials=currentUser.name.split(' ').map((w,i)=>i<2?w[0]:'').join('');
+  document.getElementById('user-badge').innerHTML=
+    `<div class="user-avatar-sm" style="background:${o?o.bg:'#EEEDFE'};color:${o?o.color:'#534AB7'}">${initials}</div>`+
+    `<div class="user-name-sm">${currentUser.name}</div>`;
+  document.getElementById('owner-sel').value=currentUser.ownerId;
+  const pmHelpBtn=document.getElementById('help-pm-btn');
+  if(pmHelpBtn) pmHelpBtn.style.display=currentUser.role==='pm'?'':'none';
+  if(currentUser.role==='owner'){
+    switchTab('owner');
+    onOwnerChange();
+  } else {
+    switchTab('pm');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════════════════════
+const OWNERS=[
+  {id:'blaine',  name:'Blaine Emery',     color:'#7F77DD',bg:'#EEEDFE',initials:'BE',
+   channels:['Lease','Pellet Mill Wear Items']},
+  {id:'margaret',name:'Margaret Graese',  color:'#1D9E75',bg:'#E1F5EE',initials:'MG',
+   channels:['Diesel – Propane','Energy','Mill Grease']},
+  {id:'luann',   name:'Luann Lafreniere', color:'#EF9F27',bg:'#FAEEDA',initials:'LL',
+   channels:['CapEx','MRO','Packaging','Rentals','Services & Subscriptions','Travel']},
+  {id:'johnc',   name:'John Crass',       color:'#378ADD',bg:'#E6F1FB',initials:'JC',
+   channels:['Transportation','Warehousing']},
+  {id:'tonyw',   name:'Tony Woods',       color:'#639922',bg:'#EAF3DE',initials:'TW',
+   channels:['Wood Fiber']},
+  {id:'arup',    name:'Arup Basu',        color:'#BA7517',bg:'#FAEEDA',initials:'AB',
+   channels:['Rolling Stock'],temp:true,tempUntil:'Sep 1, 2026'},
+];
+
+const ALL_CHANNELS=OWNERS.flatMap(o=>o.channels.map(c=>({channel:c,ownerId:o.id,owner:o})));
+
+const PHASES=[
+  {id:'ph1',label:'Phase I', color:'#B4B2A9',tc:'#2C2C2A',stages:[1,2,3,4,5,6,7]},
+  {id:'ph2',label:'Phase II',color:'#AFA9EC',tc:'#26215C',stages:[8,9,10,11]},
+  {id:'ph3',label:'Phase III',color:'#5DCAA5',tc:'#04342C',stages:[12,13,14,15]},
+];
+const PHASE_FOR={};PHASES.forEach(p=>p.stages.forEach(s=>PHASE_FOR[s]=p));
+
+const STAGE_NAMES={
+  1:'Channel definition',2:'Resource leveling',3:'Channel evaluation',
+  4:'Repository setup',5:'Document archiving',6:'Supplier identification',
+  7:'Contract calendars',8:'Current state',9:'Category breakdown',
+  10:'Supplier risk scan',11:'Should costing',12:'Strategic risk assessment',
+  13:'Areas of concern',14:'New strategy',15:'Sustaining'
+};
+
+const PLANNED_DATES={
+  1:{start:'2026-02-01',end:'2026-02-14'},2:{start:'2026-02-15',end:'2026-02-28'},
+  3:{start:'2026-03-01',end:'2026-03-15'},4:{start:'2026-03-01',end:'2026-03-15'},
+  5:{start:'2026-03-01',end:'2026-03-31'},6:{start:'2026-03-15',end:'2026-04-15'},
+  7:{start:'2026-03-15',end:'2026-05-15'},8:{start:'2026-05-01',end:'2026-05-14'},
+  9:{start:'2026-05-15',end:'2026-05-28'},10:{start:'2026-05-29',end:'2026-06-11'},
+  11:{start:'2026-06-12',end:'2026-07-09'},12:{start:'2026-07-10',end:'2026-07-31'},
+  13:{start:'2026-08-01',end:'2026-08-14'},14:{start:'2026-08-15',end:'2026-09-18'},
+  15:{start:'2026-09-19',end:'2026-10-30'},
+};
+
+const STATUSES=['ns','ip','done'];
+const S_LBL={ns:'Not started',ip:'In progress',done:'Complete'};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STATE  — structure: state[ownerId][channelName][stageNum]
+// ═══════════════════════════════════════════════════════════════════════════════
+let state={};
+let expandedOwners={};   // track which owner rows are expanded in PM tracker
+let activeChannel={};    // track active channel tab per owner in owner view
+
+function initState(){
+  OWNERS.forEach(o=>{
+    if(!state[o.id])state[o.id]={};
+    o.channels.forEach(ch=>{
+      if(!state[o.id][ch])state[o.id][ch]={};
+      for(let s=1;s<=15;s++){
+        if(!state[o.id][ch][s]) state[o.id][ch][s]={
+          status:'ns',applicable:true,
+          plannedStart:PLANNED_DATES[s].start,
+          plannedEnd:PLANNED_DATES[s].end,
+          actualStart:'',actualEnd:'',notes:''
+        };
+      }
+      // Pre-fill stages 1-6 as done, stage 7 as in-progress
+      for(let s=1;s<=6;s++) state[o.id][ch][s].status='done';
+      if(state[o.id][ch][7].status==='ns') state[o.id][ch][7].status='ip';
+    });
+  });
+}
+
+async function loadState(){
+  try{
+    const r=localStorage.getItem('pms-v3-ch');
+    if(r){
+      const d=JSON.parse(r);
+      OWNERS.forEach(o=>{
+        if(d[o.id]) o.channels.forEach(ch=>{
+          if(d[o.id][ch]) Object.assign(state[o.id][ch],d[o.id][ch]);
+        });
+      });
+    }
+  }catch(e){}
+}
+
+async function saveState(){
+  try{localStorage.setItem('pms-v3-ch',JSON.stringify(state));}catch(e){}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════════════
+function daysBetween(a,b){return Math.round((new Date(b)-new Date(a))/(1000*60*60*24));}
+
+function getChannelProgress(ownerId,ch){
+  const stages=state[ownerId][ch];
+  const applicable=Object.values(stages).filter(v=>v.applicable);
+  const done=applicable.filter(v=>v.status==='done').length;
+  return applicable.length?Math.round((done/applicable.length)*100):0;
+}
+
+function getOwnerProgress(ownerId){
+  const o=OWNERS.find(x=>x.id===ownerId);
+  const all=o.channels.flatMap(ch=>Object.values(state[ownerId][ch]).filter(v=>v.applicable));
+  const done=all.filter(v=>v.status==='done').length;
+  return all.length?Math.round((done/all.length)*100):0;
+}
+
+function isLate(stg){return stg.applicable&&stg.status!=='done'&&stg.plannedEnd&&new Date()>new Date(stg.plannedEnd);}
+function slipDays(stg){if(!stg.plannedEnd||!stg.actualEnd)return null;return daysBetween(stg.plannedEnd,stg.actualEnd);}
+
+function getStageStatus(ownerId,ch,s){
+  const d=state[ownerId][ch][s];
+  if(!d.applicable)return 'na';
+  if(isLate(d))return 'late';
+  return d.status;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PM METRICS
+// ═══════════════════════════════════════════════════════════════════════════════
+function renderMetrics(){
+  let done=0,ip=0,late=0,total=0;
+  OWNERS.forEach(o=>o.channels.forEach(ch=>{
+    Object.values(state[o.id][ch]).forEach(v=>{
+      if(!v.applicable)return;
+      total++;
+      if(v.status==='done')done++;
+      else if(v.status==='ip'){ip++;if(isLate(v))late++;}
+    });
+  }));
+  document.getElementById('pm-metrics').innerHTML=`
+    <div class="metric"><div class="metric-lbl">Overall completion</div><div class="metric-val">${total?Math.round((done/total)*100):0}%</div><div class="metric-sub">${done} of ${total} stages</div></div>
+    <div class="metric"><div class="metric-lbl">Stages complete</div><div class="metric-val">${done}</div><div class="metric-sub">across all channels</div></div>
+    <div class="metric"><div class="metric-lbl">In progress</div><div class="metric-val">${ip}</div><div class="metric-sub">stages active</div></div>
+    <div class="metric"><div class="metric-lbl">Overdue</div><div class="metric-val" style="color:${late>0?'#E24B4A':'inherit'}">${late}</div><div class="metric-sub">past planned end</div></div>
+    <div class="metric"><div class="metric-lbl">Channels tracked</div><div class="metric-val">15</div><div class="metric-sub">6 owners</div></div>
+    <div class="metric"><div class="metric-lbl">RS handover</div><div class="metric-val" style="font-size:14px;">Sep 1</div><div class="metric-sub">Permanent owner</div></div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// OWNER PROGRESS CARDS
+// ═══════════════════════════════════════════════════════════════════════════════
+function renderOwnerGrid(){
+  document.getElementById('pm-owner-grid').innerHTML=OWNERS.map(o=>{
+    const pct=getOwnerProgress(o.id);
+    return`<div class="owner-card${o.temp?' temp':''}" onclick="jumpOwner('${o.id}')">
+      <div class="oa" style="background:${o.bg};color:${o.color}">${o.initials}</div>
+      <div class="on">${o.name}${o.temp?'<span class="tbadge">Temp</span>':''}</div>
+      <div class="oc">${o.channels.length} channel${o.channels.length>1?'s':''}: ${o.channels.join(', ')}</div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:#888;margin-top:6px;"><span>${pct}% overall</span></div>
+      <div class="prog-wrap"><div class="prog-bar" style="width:${pct}%;background:${o.color}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PM TRACKER — expandable owner → channel rows
+// ═══════════════════════════════════════════════════════════════════════════════
+function renderTracker(){
+  const phCols=PHASES.map(p=>p.stages.map((s,i)=>
+    `<th class="ph-${p.id==='ph1'?'1':p.id==='ph2'?'2':'3'}" style="background:${p.color};color:${p.tc};font-size:8px;">${i===0?p.label:''}<br>S${s}</th>`
+  ).join('')).join('');
+
+  let rows='';
+  OWNERS.forEach(o=>{
+    const expanded=!!expandedOwners[o.id];
+    const pct=getOwnerProgress(o.id);
+    // Summary dots for owner row: best status across channels per stage
+    const sumDots=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15].map(s=>{
+      const statuses=o.channels.map(ch=>getStageStatus(o.id,ch,s));
+      const best=statuses.includes('done')?'done':statuses.includes('ip')?'ip':statuses.includes('late')?'late':statuses.every(x=>x==='na')?'na':'ns';
+      const icon=best==='done'?'✓':best==='ip'?'●':best==='late'?'!':best==='na'?'—':'';
+      const cls=best==='done'?'dot-done':best==='ip'?'dot-ip':best==='late'?'dot-late':best==='na'?'dot-na':'dot-ns';
+      return`<td style="text-align:center;border-right:1px solid var(--border);padding:3px;"><div class="dot ${cls}" title="Stage ${s} across all ${o.name} channels">${icon}</div></td>`;
+    }).join('');
+    const short=o.name.split(' ').map((w,i)=>i===0?w:w[0]+'.').join(' ');
+    rows+=`<tr class="tr-owner" id="tr-owner-${o.id}">
+      <td onclick="toggleOwnerRow('${o.id}')">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${o.color};margin-right:5px;vertical-align:middle;"></span>
+        <span style="margin-right:6px;">${expanded?'▾':'▸'}</span>
+        ${short}${o.temp?'<span class="tbadge" style="font-size:7px;">T</span>':''}
+        <span style="margin-left:8px;font-size:9px;font-weight:400;color:#888;">${pct}%</span>
+      </td>${sumDots}
+    </tr>`;
+    // Channel sub-rows
+    o.channels.forEach(ch=>{
+      const chPct=getChannelProgress(o.id,ch);
+      const chDots=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15].map(s=>{
+        const d=state[o.id][ch][s];
+        const st=getStageStatus(o.id,ch,s);
+        const icon=st==='done'?'✓':st==='ip'?'●':st==='late'?'!':st==='na'?'—':'';
+        const cls=st==='done'?'dot-done':st==='ip'?'dot-ip':st==='late'?'dot-late':st==='na'?'dot-na':'dot-ns';
+        const slip=slipDays(d);
+        const tt=`${ch} · Stage ${s}: ${STAGE_NAMES[s]}\nStatus: ${d.applicable?S_LBL[d.status]:'N/A'}\nPlanned: ${d.plannedStart}→${d.plannedEnd}\nActual: ${d.actualStart||'—'}→${d.actualEnd||'—'}${slip!==null?'\nSlippage: '+slip+'d':''}`;
+        return`<td style="text-align:center;border-right:1px solid rgba(0,0,0,0.05);padding:3px;">
+          <div class="dot ${cls}" title="${tt}" onclick="cycleChannelStatus('${o.id}','${ch.replace(/'/g,"\\'")}',${s})" style="cursor:pointer;">${icon}</div>
+        </td>`;
+      }).join('');
+      rows+=`<tr class="tr-channel${expanded?' visible':''}" id="tr-ch-${o.id}-${ch.replace(/[^a-z0-9]/gi,'_')}">
+        <td style="border-right:1px solid var(--border);">
+          <span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:${o.color};margin-right:6px;vertical-align:middle;opacity:0.6;"></span>
+          ${ch} <span style="font-size:9px;color:#888;margin-left:4px;">${chPct}%</span>
+        </td>${chDots}
+      </tr>`;
+    });
+  });
+
+  document.getElementById('tracker-wrap').innerHTML=
+    `<table class="tracker-table"><thead><tr class="tr-head"><th>Owner / Channel</th>${phCols}</tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function toggleOwnerRow(ownerId){
+  expandedOwners[ownerId]=!expandedOwners[ownerId];
+  renderTracker();
+}
+
+function cycleChannelStatus(ownerId,ch,s){
+  const d=state[ownerId][ch][s];
+  if(!d.applicable)return;
+  d.status=STATUSES[(STATUSES.indexOf(d.status)+1)%STATUSES.length];
+  saveState();renderTracker();renderOwnerGrid();renderMetrics();if(masterGanttExpanded)renderMasterGantt();if(channelGanttExpanded)renderGantt();
+  if(document.getElementById('view-owner').classList.contains('active')) renderOwnerView(ownerId);
+}
+
+let deadlinesExpanded=false;
+let masterGanttExpanded=false;
+let channelGanttExpanded=false;
+
+function toggleGantt(which){
+  if(which==='master'){
+    masterGanttExpanded=!masterGanttExpanded;
+    const body=document.getElementById('master-gantt-body');
+    const chev=document.getElementById('master-gantt-chevron');
+    if(body) body.style.display=masterGanttExpanded?'block':'none';
+    if(chev) chev.textContent=masterGanttExpanded?'▴':'▾';
+    if(masterGanttExpanded) renderMasterGantt();
+  } else {
+    channelGanttExpanded=!channelGanttExpanded;
+    const body=document.getElementById('channel-gantt-body');
+    const chev=document.getElementById('channel-gantt-chevron');
+    if(body) body.style.display=channelGanttExpanded?'block':'none';
+    if(chev) chev.textContent=channelGanttExpanded?'▴':'▾';
+    if(channelGanttExpanded) setTimeout(renderGantt,50);
+  }
+}
+
+
+
+function toggleDeadlines(){
+  deadlinesExpanded=!deadlinesExpanded;
+  const body=document.getElementById('deadlines-body');
+  const chevron=document.getElementById('deadlines-chevron');
+  if(body) body.style.display=deadlinesExpanded?'block':'none';
+  if(chevron){chevron.textContent=deadlinesExpanded?'▴':'▾';chevron.style.transform='';}
+  if(deadlinesExpanded) renderDeadlines();
+}
+
+
+
+// Owner email map
+const OWNER_EMAILS={
+  blaine:  'bemery@lignetics.com',
+  margaret:'mgraese@lignetics.com',
+  luann:   'llafreniere@lignetics.com',
+  johnc:   'jcrass@lignetics.com',
+  tonyw:   'twoods@lignetics.com',
+  arup:    'abasu@lignetics.com',
+};
+
+function renderDeadlines(){
+  const el=document.getElementById('deadlines-panel');
+  if(!el)return;
+
+  const today=new Date();
+  today.setHours(0,0,0,0);
+  const in3=new Date(today); in3.setDate(today.getDate()+3);
+  const in7=new Date(today); in7.setDate(today.getDate()+7);
+
+  // Collect all stages with plannedEnd within 7 days that are not yet complete
+  const upcoming=[];
+  OWNERS.forEach(o=>{
+    o.channels.forEach(ch=>{
+      for(let s=1;s<=15;s++){
+        const d=state[o.id][ch][s];
+        if(!d.applicable) continue;
+        if(d.status==='done') continue;
+        if(!d.plannedEnd) continue;
+        const due=new Date(d.plannedEnd);
+        due.setHours(0,0,0,0);
+        const daysLeft=Math.round((due-today)/(1000*60*60*24));
+        if(daysLeft<=7){
+          upcoming.push({
+            ownerId:o.id, ownerName:o.name, ownerColor:o.color,
+            ownerEmail:OWNER_EMAILS[o.id]||'',
+            channel:ch, stage:s, stageName:STAGE_NAMES[s],
+            phase:PHASE_FOR[s].label, phaseColor:PHASE_FOR[s].color, phaseTc:PHASE_FOR[s].tc,
+            dueDate:d.plannedEnd, daysLeft, status:d.status,
+            isOverdue:daysLeft<0
+          });
+        }
+      }
+    });
+  });
+
+  // Sort: overdue first, then by days left, then by owner
+  upcoming.sort((a,b)=>a.daysLeft-b.daysLeft);
+
+  // Always update the badge regardless of count
+  const badge=document.getElementById('deadlines-summary-badge');
+
+  if(upcoming.length===0){
+    if(badge) badge.innerHTML=`<span style="color:#27500A;font-size:10px;">✅ All clear</span>`;
+    el.innerHTML=`<div class="no-deadlines">✅ No stages due within the next 7 days. All upcoming deadlines are clear.</div>`;
+    return;
+  }
+
+  // Group by owner for cleaner display
+  const byOwner={};
+  upcoming.forEach(u=>{
+    if(!byOwner[u.ownerId])byOwner[u.ownerId]=[];
+    byOwner[u.ownerId].push(u);
+  });
+
+  const rows=upcoming.map((u,i)=>{
+    const urgencyClass=u.isOverdue?'urgency-3':u.daysLeft<=3?'urgency-3':'urgency-7';
+    const urgencyText=u.isOverdue?`${Math.abs(u.daysLeft)}d overdue`:
+                      u.daysLeft===0?'Due today':
+                      u.daysLeft===1?'Due tomorrow':
+                      `${u.daysLeft}d remaining`;
+    const statusBg=u.status==='ip'?'#E6F1FB':'#F1EFE8';
+    const statusColor=u.status==='ip'?'#0C447C':'#5F5E5A';
+
+    return`<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:${u.ownerColor};flex-shrink:0;"></div>
+          <span style="font-weight:500;">${u.ownerName}</span>
+        </div>
+      </td>
+      <td style="font-weight:500;">${u.channel}</td>
+      <td>
+        <span style="display:inline-block;font-size:9px;font-weight:600;padding:2px 6px;border-radius:4px;background:${u.phaseColor};color:${u.phaseTc};margin-right:5px;">S${u.stage}</span>
+        ${u.stageName}
+      </td>
+      <td style="font-size:11px;color:var(--text3);">${u.phase}</td>
+      <td style="font-weight:500;color:var(--text3);">${u.dueDate}</td>
+      <td><span class="urgency-badge ${urgencyClass}">${urgencyText}</span></td>
+      <td style="text-align:center;">
+        <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:8px;background:${statusBg};color:${statusColor};">${S_LBL[u.status]}</span>
+      </td>
+      <td>
+        <button class="reminder-btn" id="rbtn-${i}"
+          onclick="sendReminder(${i},'${u.ownerId}','${u.ownerName}','${u.ownerEmail}','${u.channel}',${u.stage},'${u.stageName}','${u.dueDate}',${u.daysLeft},'rbtn-${i}')">
+          ✉ Send reminder
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  const overdueCount=upcoming.filter(u=>u.isOverdue).length;
+  const due3Count=upcoming.filter(u=>!u.isOverdue&&u.daysLeft<=3).length;
+  const due7Count=upcoming.filter(u=>!u.isOverdue&&u.daysLeft>3).length;
+
+  // Update collapsed header summary badge
+  if(badge){
+    if(upcoming.length===0){
+      badge.innerHTML=`<span style="color:#27500A;font-size:10px;">✅ All clear</span>`;
+    } else {
+      const parts=[];
+      if(overdueCount>0) parts.push(`<span style="color:#E24B4A;font-weight:600;">${overdueCount} overdue</span>`);
+      if(due3Count>0)    parts.push(`<span style="color:#791F1F;font-weight:600;">${due3Count} due ≤3d</span>`);
+      if(due7Count>0)    parts.push(`<span style="color:#633806;">${due7Count} due ≤7d</span>`);
+      badge.innerHTML=`<span style="font-size:10px;color:var(--text3);">— ${parts.join(' · ')}</span>`;
+    }
+  }
+
+  if(upcoming.length===0){
+    el.innerHTML=`<div class="no-deadlines">✅ No stages due within the next 7 days. All upcoming deadlines are clear.</div>`;
+    return;
+  }
+
+  el.innerHTML=`
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+      ${overdueCount>0?`<span class="urgency-badge urgency-3">⚠ ${overdueCount} overdue</span>`:''}
+      ${due3Count>0?`<span class="urgency-badge urgency-3">🔴 ${due3Count} due within 3 days</span>`:''}
+      ${due7Count>0?`<span class="urgency-badge urgency-7">🟡 ${due7Count} due within 7 days</span>`:''}
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="deadline-table">
+        <thead>
+          <tr>
+            <th>Owner</th>
+            <th>Channel</th>
+            <th>Stage</th>
+            <th>Phase</th>
+            <th>Due date</th>
+            <th>Urgency</th>
+            <th>Status</th>
+            <th style="text-align:center;">Reminder</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function sendReminder(idx, ownerId, ownerName, ownerEmail, channel, stage, stageName, dueDate, daysLeft, btnId){
+  const urgencyLine=daysLeft<0?
+    `⚠️ This stage is now ${Math.abs(daysLeft)} day${Math.abs(daysLeft)>1?'s':''} overdue.`:
+    daysLeft===0?`⏰ This stage is due TODAY.`:
+    daysLeft<=3?`🔴 This stage is due in ${daysLeft} day${daysLeft>1?'s':''} — urgent action required.`:
+    `🟡 This stage is due in ${daysLeft} day${daysLeft>1?'s':''}.`;
+
+  const subject=encodeURIComponent(
+    `PMS Reminder — Stage ${stage}: ${stageName} · ${channel} · Due ${dueDate}`
+  );
+
+  const body=encodeURIComponent(
+`Hi ${ownerName.split(' ')[0]},
+
+This is a reminder that the following PMS stage is approaching its planned completion date:
+
+  Channel:   ${channel}
+  Stage:     Stage ${stage} — ${stageName}
+  Due date:  ${dueDate}
+
+${urgencyLine}
+
+Please log in to the PMS app and update the stage status, or contact Arup Basu (abasu@lignetics.com) if you have any concerns or need support.
+
+PMS App: https://pelletheat.sharepoint.com/sites/CentralizedPurchasingTeam/Shared%20Documents/Procurement%20Management%20System/PMS_ChannelOwner_App.html
+
+Best regards,
+Arup Basu
+Procurement Program Manager
+abasu@lignetics.com
+`);
+
+  // Open Outlook mailto — works in browser and desktop Outlook
+  const mailtoLink=`mailto:${ownerEmail}?subject=${subject}&body=${body}`;
+  window.location.href=mailtoLink;
+
+  // Mark button as sent
+  const btn=document.getElementById(btnId);
+  if(btn){
+    btn.textContent='✓ Email opened';
+    btn.classList.add('sent');
+    btn.disabled=true;
+  }
+}
+
+
+function renderMasterGantt(){
+  const el=document.getElementById('master-gantt-inner');
+  if(!el)return;
+
+  // For each stage: aggregate completion % across all channels + applicable stages
+  // Traffic light logic:
+  //   🟢 Green  — ≥80% complete OR all applicable done
+  //   🟡 Amber  — ≥40% complete OR in progress but not late
+  //   🔴 Red    — any applicable stage is overdue / late
+  //   ⚫ Grey   — 0% and not yet started (future stage)
+
+  const stageData=[];
+  for(let s=1;s<=15;s++){
+    let totalApplicable=0,totalDone=0,totalIP=0,totalLate=0;
+    // Earliest planned start and latest planned end across all channels
+    let pStarts=[],pEnds=[];
+    OWNERS.forEach(o=>{
+      o.channels.forEach(ch=>{
+        const d=state[o.id][ch][s];
+        if(!d.applicable)return;
+        totalApplicable++;
+        if(d.status==='done')totalDone++;
+        else if(d.status==='ip') totalIP++;
+        if(isLate(d)) totalLate++;
+        if(d.plannedStart) pStarts.push(d.plannedStart);
+        if(d.plannedEnd)   pEnds.push(d.plannedEnd);
+      });
+    });
+    const pct=totalApplicable?Math.round((totalDone/totalApplicable)*100):0;
+    const ps=pStarts.sort()[0]||PLANNED_DATES[s].start;
+    const pe=pEnds.sort().reverse()[0]||PLANNED_DATES[s].end;
+
+    // Traffic light
+    let tl='grey';
+    if(totalApplicable===0) tl='grey';
+    else if(totalLate>0)    tl='red';
+    else if(pct>=80)        tl='green';
+    else if(pct>=40||totalIP>0) tl='amber';
+    else {
+      // Check if this stage is in the future (planned start not yet reached)
+      const now=new Date();
+      const startDate=new Date(ps);
+      tl=startDate>now?'grey':'amber';
+    }
+
+    // Avg slippage across channels that have actual end dates
+    let slips=[];
+    OWNERS.forEach(o=>{
+      o.channels.forEach(ch=>{
+        const d=state[o.id][ch][s];
+        if(!d.applicable)return;
+        const sl=slipDays(d);
+        if(sl!==null) slips.push(sl);
+      });
+    });
+    const avgSlip=slips.length?Math.round(slips.reduce((a,b)=>a+b,0)/slips.length):null;
+
+    stageData.push({s,pct,tl,totalDone,totalApplicable,totalLate,avgSlip,ps,pe});
+  }
+
+  // Overall program summary
+  const allDone=stageData.reduce((a,d)=>a+d.totalDone,0);
+  const allApplicable=stageData.reduce((a,d)=>a+d.totalApplicable,0);
+  const overallPct=allApplicable?Math.round((allDone/allApplicable)*100):0;
+  const totalLateAll=stageData.reduce((a,d)=>a+d.totalLate,0);
+  const overallTL=totalLateAll>0?'red':overallPct>=80?'green':overallPct>=40?'amber':'grey';
+
+  // Timeline for track positioning
+  const trackStart=new Date('2026-02-01');
+  const trackEnd  =new Date('2026-11-01');
+  const trackMs   =trackEnd-trackStart;
+  function trackPct(dateStr){
+    if(!dateStr)return 0;
+    return Math.max(0,Math.min(100,((new Date(dateStr)-trackStart)/trackMs)*100));
+  }
+  const todayPct=trackPct(new Date().toISOString().slice(0,10));
+
+  const ph=PHASE_FOR;
+  const tlIcon={green:'✓',amber:'~',red:'!',grey:'·'};
+  const tlClass={green:'tl-green',amber:'tl-amber',red:'tl-red',grey:'tl-grey'};
+  const slipText=(avg)=>avg===null?'—':avg===0?'On time':avg>0?'+'+avg+'d late':Math.abs(avg)+'d early';
+  const slipColor=(avg)=>avg===null?'#888':avg>0?'#E24B4A':avg<0?'#639922':'#27500A';
+
+  let html='';
+
+  // Summary bar
+  const sumTlClass=tlClass[overallTL];
+  html+=`<div class="mg-summary-row">
+    <div class="mg-label" style="width:180px;font-size:12px;font-weight:600;">
+      <div class="mg-tl ${sumTlClass}">${tlIcon[overallTL]}</div>
+      Overall program
+    </div>
+    <div class="mg-track-wrap">
+      <div class="mg-bar-row">
+        <div class="mg-track" style="height:22px;">
+          <div class="mg-bar-bg" style="width:100%;background:#534AB7;"></div>
+          <div class="mg-bar-fill" style="width:${overallPct}%;background:#534AB7;opacity:1;">
+            ${overallPct>8?`<span class="mg-bar-label">${overallPct}% complete — ${allDone} of ${allApplicable} stages</span>`:''}
+          </div>
+          <div class="mg-today-line" style="left:${todayPct}%;background:#E24B4A;opacity:0.8;"></div>
+        </div>
+        <div class="mg-pct" style="color:#534AB7;">${overallPct}%</div>
+        <div class="mg-slip" style="color:${totalLateAll>0?'#E24B4A':'#27500A'};font-weight:600;font-size:11px;">${totalLateAll>0?totalLateAll+' overdue':'On track'}</div>
+      </div>
+    </div>
+  </div>`;
+
+  // Header row
+  html+=`<div class="mg-header">
+    <div style="width:180px;flex-shrink:0;">Stage</div>
+    <div style="flex:1;padding-left:4px;">Progress (planned window)</div>
+    <div style="width:38px;text-align:right;">%</div>
+    <div style="width:70px;text-align:center;">Slippage</div>
+    <div style="width:22px;text-align:center;">🚦</div>
+  </div>`;
+
+  // Phase dividers + stage bars
+  let lastPhase='';
+  stageData.forEach(d=>{
+    const phase=PHASE_FOR[d.s];
+    if(phase.label!==lastPhase){
+      html+=`<div class="mg-phase-divider">
+        <div class="mg-phase-dot" style="background:${phase.color};width:14px;height:14px;border-radius:3px;"></div>
+        <span style="color:${phase.tc==='#2C2C2A'?'#5f5e5a':phase.tc==='#26215C'?'#534AB7':'#0F6E56'}">${phase.label}</span>
+        <div class="mg-phase-line"></div>
+      </div>`;
+      lastPhase=phase.label;
+    }
+
+    // Bar fill colour based on traffic light
+    const barColor=d.tl==='green'?'#639922':d.tl==='amber'?'#EF9F27':d.tl==='red'?'#E24B4A':'#B4B2A9';
+    // Position planned window on track
+    const bgLeft=trackPct(d.ps);
+    const bgWidth=Math.max(1,trackPct(d.pe)-trackPct(d.ps));
+    const fillWidth=(bgWidth*(d.pct/100));
+
+    html+=`<div class="mg-stage-row">
+      <div class="mg-label">
+        <div class="mg-phase-dot" style="background:${phase.color};flex-shrink:0;"></div>
+        <span>S${d.s} ${STAGE_NAMES[d.s]}</span>
+      </div>
+      <div class="mg-track-wrap">
+        <div class="mg-bar-row">
+          <div class="mg-track">
+            <!-- Full track bg -->
+            <div style="position:absolute;inset:0;background:var(--bg3);border-radius:4px;"></div>
+            <!-- Planned window -->
+            <div class="mg-bar-bg" style="left:${bgLeft}%;width:${bgWidth}%;background:${barColor};border-radius:4px;"></div>
+            <!-- Progress fill within planned window -->
+            <div class="mg-bar-fill" style="left:${bgLeft}%;width:${fillWidth}%;background:${barColor};border-radius:4px 0 0 4px;"></div>
+            <!-- Today line -->
+            <div class="mg-today-line" style="left:${todayPct}%;background:#E24B4A;opacity:0.6;"></div>
+            ${d.pct>0&&fillWidth>12?`<div class="mg-bar-label" style="left:${bgLeft}%;right:auto;padding-left:6px;">${d.pct}%</div>`:''}
+          </div>
+          <div class="mg-pct">${d.pct}%</div>
+          <div class="mg-slip" style="color:${slipColor(d.avgSlip)};font-weight:500;">${slipText(d.avgSlip)}</div>
+          <div class="mg-tl ${tlClass[d.tl]}">${tlIcon[d.tl]}</div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  el.innerHTML=html;
+
+  // Legend
+  document.getElementById('master-gantt-legend').innerHTML=`
+    <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Traffic light key</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;"><div class="mg-tl tl-green" style="width:18px;height:18px;font-size:9px;">✓</div> On track (≥80% complete)</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;"><div class="mg-tl tl-amber" style="width:18px;height:18px;font-size:9px;">~</div> In progress / watch</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;"><div class="mg-tl tl-red" style="width:18px;height:18px;font-size:9px;">!</div> Overdue — action needed</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;"><div class="mg-tl tl-grey" style="width:18px;height:18px;font-size:9px;">·</div> Not yet started</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;"><div style="width:2px;height:14px;background:#E24B4A;border-radius:1px;"></div> Today</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;"><div style="width:16px;height:8px;background:#B4B2A9;border-radius:2px;opacity:0.3;"></div> Planned window</div>
+    </div>`;
+}
+
+
+function renderGantt(){
+  const svg=document.getElementById('gantt-svg');
+  const W=svg.parentElement.offsetWidth-32||800;
+  const rowH=28,labelW=180,pad=8;
+  const trackW=W-labelW-pad*2;
+  const minD=new Date('2026-02-01'),maxD=new Date('2026-11-01');
+  function px(d){return labelW+pad+Math.round(((new Date(d)-minD)/(maxD-minD))*trackW);}
+  function pw(s,e){return Math.max(2,px(e)-px(s));}
+
+  // Month grid
+  const months=[];
+  let md=new Date(minD);
+  while(md<maxD){months.push(new Date(md));md=new Date(md.getFullYear(),md.getMonth()+1,1);}
+
+  const allRows=[];
+  OWNERS.forEach(o=>{
+    o.channels.forEach(ch=>{
+      // Get earliest planned start and latest planned end across applicable stages
+      const stages=Object.entries(state[o.id][ch]).filter(([,v])=>v.applicable);
+      const pStarts=stages.map(([,v])=>v.plannedStart).filter(Boolean).sort();
+      const pEnds=stages.map(([,v])=>v.plannedEnd).filter(Boolean).sort().reverse();
+      const aStarts=stages.map(([,v])=>v.actualStart).filter(Boolean).sort();
+      const aEnds=stages.map(([,v])=>v.actualEnd).filter(Boolean).sort().reverse();
+      const pct=getChannelProgress(o.id,ch);
+      allRows.push({ch,ownerId:o.id,owner:o,
+        ps:pStarts[0],pe:pEnds[0],as:aStarts[0],ae:aEnds[0],pct});
+    });
+  });
+
+  const totalH=20+(allRows.length+1)*rowH+30;
+  svg.setAttribute('height',totalH);svg.setAttribute('width',W);
+  let html=`<rect x="0" y="0" width="${W}" height="${totalH}" fill="#F5F4F1"/>`;
+
+  // Month lines + labels
+  months.forEach(m=>{
+    const x=px(m.toISOString().slice(0,10));
+    html+=`<line x1="${x}" y1="18" x2="${x}" y2="${totalH-10}" stroke="#E0DED8" stroke-width="1"/>`;
+    html+=`<text x="${x+3}" y="13" font-size="9" fill="#888" font-family="system-ui">${m.toLocaleString('default',{month:'short'})}</text>`;
+  });
+
+  // Today line
+  const todayX=px(new Date().toISOString().slice(0,10));
+  html+=`<line x1="${todayX}" y1="18" x2="${todayX}" y2="${totalH-10}" stroke="#E24B4A" stroke-width="1.5" stroke-dasharray="3,2"/>`;
+  html+=`<text x="${todayX+3}" y="13" font-size="8" fill="#E24B4A" font-family="system-ui">Today</text>`;
+
+  // Channel rows
+  allRows.forEach((r,i)=>{
+    const y=18+i*rowH+rowH/2;
+    const barH=12, barY=y-barH/2;
+
+    // Alternating row background
+    if(i%2===0) html+=`<rect x="${labelW}" y="${y-rowH/2+1}" width="${trackW+pad}" height="${rowH-2}" fill="rgba(255,255,255,0.6)" rx="2"/>`;
+
+    // Owner colour side indicator
+    html+=`<rect x="0" y="${y-7}" width="5" height="14" fill="${r.owner.color}" rx="2"/>`;
+
+    // Channel label
+    const shortCh=r.ch.length>22?r.ch.slice(0,20)+'…':r.ch;
+    html+=`<text x="${labelW-8}" y="${y+4}" font-size="10" fill="#1a1a18" text-anchor="end" font-family="system-ui">${shortCh}</text>`;
+
+    if(r.ps&&r.pe){
+      const x1=px(r.ps), w1=pw(r.ps,r.pe);
+      const progW=Math.round(w1*(r.pct/100));
+
+      // 1. Hollow planned window — light fill + visible border outline
+      html+=`<rect x="${x1}" y="${barY}" width="${w1}" height="${barH}"
+        fill="${r.owner.color}" fill-opacity="0.12"
+        stroke="${r.owner.color}" stroke-width="1.5"
+        rx="4"/>`;
+
+      // 2. Solid progress fill inside the planned window
+      if(progW>0){
+        // Clip fill to stay within the rounded outline
+        const clipId=`clip-${i}`;
+        html+=`<clipPath id="${clipId}"><rect x="${x1}" y="${barY}" width="${w1}" height="${barH}" rx="4"/></clipPath>`;
+        html+=`<rect x="${x1}" y="${barY}" width="${progW}" height="${barH}"
+          fill="${r.owner.color}" fill-opacity="0.9"
+          clip-path="url(#${clipId})"
+          rx="4"/>`;
+      }
+
+      // 3. % label — inside bar if room, outside if not
+      const pctLabel=`${r.pct}%`;
+      if(progW>28){
+        html+=`<text x="${x1+progW/2}" y="${barY+barH/2+3.5}" font-size="8" font-weight="600"
+          fill="#fff" text-anchor="middle" font-family="system-ui">${pctLabel}</text>`;
+      } else if(w1-progW>28){
+        html+=`<text x="${x1+progW+5}" y="${barY+barH/2+3.5}" font-size="8" font-weight="600"
+          fill="${r.owner.color}" text-anchor="start" font-family="system-ui">${pctLabel}</text>`;
+      } else {
+        html+=`<text x="${x1+w1+5}" y="${barY+barH/2+3.5}" font-size="8" font-weight="600"
+          fill="${r.owner.color}" text-anchor="start" font-family="system-ui">${pctLabel}</text>`;
+      }
+    }
+
+    // 4. Actual dates bar — thinner, below the main bar
+    if(r.as&&r.ae){
+      const x2=px(r.as), w2=pw(r.as,r.ae);
+      const slip=r.pe?daysBetween(r.pe,r.ae):0;
+      const ac=slip>0?'#E24B4A':slip<0?'#639922':'#534AB7';
+      html+=`<rect x="${x2}" y="${barY+barH+2}" width="${w2}" height="4" fill="${ac}" rx="2" opacity="0.8"/>`;
+      if(r.pe&&Math.abs(slip)>0){
+        html+=`<text x="${x2+w2+3}" y="${barY+barH+7}" font-size="8" fill="${ac}" font-family="system-ui">${slip>0?'+':''}${slip}d</text>`;
+      }
+    }
+  });
+
+  svg.innerHTML=html;
+
+  // Legend
+  document.getElementById('gantt-legend').innerHTML=
+    `<div class="gantt-legend-item">
+      <svg width="32" height="12"><rect x="0" y="1" width="32" height="10" fill="rgba(83,74,183,0.12)" stroke="#534AB7" stroke-width="1.5" rx="3"/></svg>
+      Planned window (hollow)
+    </div>`+
+    `<div class="gantt-legend-item">
+      <svg width="18" height="12"><rect x="0" y="1" width="18" height="10" fill="#534AB7" fill-opacity="0.9" rx="3"/></svg>
+      Progress (solid fill)
+    </div>`+
+    OWNERS.map(o=>`<div class="gantt-legend-item">
+      <svg width="12" height="12"><rect x="0" y="0" width="12" height="12" fill="${o.color}" rx="2"/></svg>
+      ${o.name.split(' ')[0]}
+    </div>`).join('')+
+    `<div class="gantt-legend-item"><div style="width:28px;height:4px;background:#534AB7;border-radius:2px;opacity:0.8;margin-top:4px;"></div>Actual (on time)</div>`+
+    `<div class="gantt-legend-item"><div style="width:28px;height:4px;background:#E24B4A;border-radius:2px;opacity:0.8;margin-top:4px;"></div>Actual (late)</div>`+
+    `<div class="gantt-legend-item"><div style="width:28px;height:4px;background:#639922;border-radius:2px;opacity:0.8;margin-top:4px;"></div>Actual (early)</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// OWNER VIEW — channel tabs + stage cards per channel
+// ═══════════════════════════════════════════════════════════════════════════════
+function onOwnerChange(){
+  const id=document.getElementById('owner-sel').value;
+  if(!id) return;
+  renderOwnerView(id);
+}
+
+function jumpOwner(id){
+  document.getElementById('owner-sel').value=id;
+  switchTab('owner');
+  renderOwnerView(id);
+}
+
+function renderOwnerView(id){
+  if(!id) id=document.getElementById('owner-sel').value;
+  const el=document.getElementById('owner-view-content');
+  if(!id){el.innerHTML='<div style="font-size:13px;color:#888;padding:24px 0;">Select your name above.</div>';return;}
+  const o=OWNERS.find(x=>x.id===id);if(!o)return;
+
+  // Default active channel
+  if(!activeChannel[id]) activeChannel[id]=o.channels[0];
+  const ch=activeChannel[id];
+
+  const pct=getOwnerProgress(id);
+  const chPct=getChannelProgress(id,ch);
+
+  // Channel tabs
+  const tabs=o.channels.map(c=>{
+    const cp=getChannelProgress(id,c);
+    return`<button class="ch-tab ${c===ch?'active':''}" style="${c===ch?'background:'+o.color+';':''}" onclick="setActiveChannel('${id}','${c.replace(/'/g,"\\'")}')">
+      ${c} <span style="font-size:9px;opacity:0.8;">${cp}%</span>
+    </button>`;
+  }).join('');
+
+  // Stage cards for active channel
+  const cards=Object.entries(STAGE_NAMES).map(([sn,sname])=>{
+    const s=parseInt(sn);
+    const ph=PHASE_FOR[s];
+    const d=state[id][ch][s];
+    const na=!d.applicable;
+    const slip=slipDays(d);
+    let slipHtml='';
+    if(na) slipHtml=`<span class="slippage-badge slip-na">N/A for this channel</span>`;
+    else if(slip!==null) slipHtml=`<span class="slippage-badge ${slip>0?'slip-late':slip<0?'slip-ok':'slip-tbd'}">${slip===0?'On time':slip>0?'+'+slip+'d late':Math.abs(slip)+'d early'}</span>`;
+    else if(isLate(d)) slipHtml=`<span class="slippage-badge slip-late">⚠ Overdue</span>`;
+    else slipHtml=`<span class="slippage-badge slip-tbd">TBD</span>`;
+
+    return`<div class="stage-input-card${na?' na-card':''}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">
+        <span class="sic-phase" style="background:${ph.color};color:${ph.tc};">${ph.label}</span>
+        <button class="na-toggle${na?' active-na':''}" onclick="toggleNA('${id}','${ch.replace(/'/g,"\\'")}',${s})" title="${na?'Mark as applicable':'Mark as N/A for this channel'}">${na?'N/A':'Mark N/A'}</button>
+      </div>
+      <div class="sic-num">Stage ${s}</div>
+      <div class="sic-title">${sname}</div>
+      ${na?'':
+      `<div class="sic-status">
+        ${['ns','ip','done'].map(st=>`<button class="s-btn ${d.status===st?'s-'+st:''}" onclick="setChStatus('${id}','${ch.replace(/'/g,"\\'")}',${s},'${st}')">${S_LBL[st]}</button>`).join('')}
+      </div>
+      <div class="date-row">
+        <div class="date-field"><div class="date-lbl planned">Planned start</div><input type="date" id="ps-${id}-${s}" value="${d.plannedStart||''}" onchange="setChDate('${id}','${ch.replace(/'/g,"\\'")}',${s},'plannedStart',this.value)"></div>
+        <div class="date-field"><div class="date-lbl planned">Planned end</div><input type="date" id="pe-${id}-${s}" value="${d.plannedEnd||''}" onchange="setChDate('${id}','${ch.replace(/'/g,"\\'")}',${s},'plannedEnd',this.value)"></div>
+      </div>
+      <div class="date-row">
+        <div class="date-field"><div class="date-lbl actual">Actual start</div><input type="date" id="as-${id}-${s}" value="${d.actualStart||''}" onchange="setChDate('${id}','${ch.replace(/'/g,"\\'")}',${s},'actualStart',this.value)"></div>
+        <div class="date-field"><div class="date-lbl actual">Actual end</div><input type="date" id="ae-${id}-${s}" value="${d.actualEnd||''}" onchange="setChDate('${id}','${ch.replace(/'/g,"\\'")}',${s},'actualEnd',this.value)"></div>
+      </div>`}
+      ${slipHtml}
+      ${na?'':`<div style="margin-top:8px;">
+        <div style="font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Notes</div>
+        <textarea id="note-${id}-${s}" rows="2"
+          style="width:100%;padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:11px;resize:vertical;font-family:var(--font);"
+          placeholder="Add notes for this stage…">${d.notes||''}</textarea>
+      </div>`}
+    </div>`;
+  }).join('');
+
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+      <div class="oa" style="background:${o.bg};color:${o.color};width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;">${o.initials}</div>
+      <div>
+        <div style="font-size:15px;font-weight:600;">${o.name}${o.temp?`<span class="tbadge">Temp owner · Rolling Stock · until ${o.tempUntil}</span>`:''}</div>
+        <div style="font-size:12px;color:#888;">Overall progress: ${pct}% across ${o.channels.length} channel${o.channels.length>1?'s':''}</div>
+      </div>
+    </div>
+    ${o.temp?`<div class="alert alert-warn" style="margin-bottom:12px;">⧖ <div>You are the <strong>temporary channel owner</strong> for Rolling Stock until <strong>${o.tempUntil}</strong>.</div></div>`:''}
+    <div style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:4px;"><span>Overall progress</span><span>${pct}%</span></div>
+      <div class="prog-wrap" style="height:8px;"><div class="prog-bar" style="width:${pct}%;background:${o.color};height:8px;"></div></div>
+    </div>
+    <div class="sec-title">Select channel</div>
+    <div class="ch-tabs">${tabs}</div>
+    <div class="ch-prog-row">
+      <span style="font-weight:500;color:var(--text);">${ch}</span>
+      <div class="ch-prog-bar-wrap"><div class="ch-prog-bar" style="width:${chPct}%;background:${o.color};"></div></div>
+      <span>${chPct}%</span>
+    </div>
+    <div style="font-size:11px;color:#888;margin-bottom:12px;">
+      <span style="display:inline-block;width:10px;height:3px;background:#534AB7;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>Planned &nbsp;·&nbsp;
+      <span style="display:inline-block;width:10px;height:3px;background:#0F6E56;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>Actual &nbsp;·&nbsp;
+      Use <strong>Mark N/A</strong> to exclude a stage that does not apply to this channel
+    </div>
+    <div class="sec-title">Stages for ${ch}</div>
+    <div class="stage-grid">${cards}</div>
+    <div class="save-row">
+      <button class="save-btn" onclick="saveChannel('${id}','${ch.replace(/'/g,"\\'")}')">💾 Save ${ch}</button>
+      <button class="print-btn" onclick="printChannel('${id}','${ch.replace(/'/g,"\\'")}')">🖨 Print</button>
+      <button class="pdf-btn" onclick="pdfChannel('${id}','${ch.replace(/'/g,"\\'")}')">📄 Save as PDF</button>
+      <span class="save-ok" id="save-ok">✓ Saved</span>
+    </div>`;
+}
+
+function setActiveChannel(id,ch){
+  activeChannel[id]=ch;
+  renderOwnerView(id);
+}
+
+function setChStatus(id,ch,s,st){
+  state[id][ch][s].status=st;
+  renderOwnerView(id);
+  renderTracker();renderOwnerGrid();renderMetrics();if(masterGanttExpanded)renderMasterGantt();if(channelGanttExpanded)renderGantt();
+}
+
+function setChDate(id,ch,s,field,val){
+  state[id][ch][s][field]=val;
+  if(masterGanttExpanded)renderMasterGantt();if(channelGanttExpanded)renderGantt();
+}
+
+function toggleNA(id,ch,s){
+  state[id][ch][s].applicable=!state[id][ch][s].applicable;
+  saveState();
+  renderOwnerView(id);
+  renderTracker();renderOwnerGrid();renderMetrics();if(masterGanttExpanded)renderMasterGantt();if(channelGanttExpanded)renderGantt();
+}
+
+function saveChannel(id,ch){
+  // Collect all date and notes inputs
+  for(let s=1;s<=15;s++){
+    const fields={plannedStart:'ps',plannedEnd:'pe',actualStart:'as',actualEnd:'ae'};
+    Object.entries(fields).forEach(([field,pfx])=>{
+      const el=document.getElementById(pfx+'-'+id+'-'+s);
+      if(el) state[id][ch][s][field]=el.value;
+    });
+    const noteEl=document.getElementById('note-'+id+'-'+s);
+    if(noteEl) state[id][ch][s].notes=noteEl.value;
+  }
+  saveState();
+  renderTracker();renderOwnerGrid();renderMetrics();if(masterGanttExpanded)renderMasterGantt();if(channelGanttExpanded)renderGantt();
+  const ok=document.getElementById('save-ok');
+  if(ok){ok.style.display='inline';setTimeout(()=>ok.style.display='none',3000);}
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STAGE 8 QUESTIONNAIRE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const Q8_SECTIONS=[
+  {id:'A',title:'A — Channel & spend overview',questions:[
+    {id:'A1',label:'Approximate total annual spend for this channel?',type:'text',hint:'Include all spend — contracted and uncontracted. Estimate is fine.'},
+    {id:'A2',label:'How is purchasing currently initiated in this channel?',type:'text',hint:'e.g. POs, verbal approvals, standing orders, direct invoicing, credit card.'},
+    {id:'A3',label:'Who are the key internal stakeholders involved in purchasing decisions?',type:'text',hint:'Anyone who approves, requests, or influences purchasing in this channel.'},
+  ]},
+  {id:'B',title:'B — Supplier landscape',questions:[
+    {id:'B1',label:'How many active suppliers are currently used in this channel?',type:'text',hint:'Estimate if exact number is unknown.'},
+    {id:'B2',label:'Who are your current strategic or preferred suppliers?',type:'text',hint:'List by name — suppliers critical to operations or representing high spend.'},
+    {id:'B3',label:'Are there any single-source suppliers with no qualified alternative?',type:'yesno',hint:'If yes, please name them below.'},
+    {id:'B4',label:'How would you rate the overall quality of supplier relationships in this channel?',type:'rating5',hint:'1 = Poor · 2 = Below average · 3 = Adequate · 4 = Good · 5 = Excellent'},
+  ]},
+  {id:'C',title:'C — Contracts & documentation',questions:[
+    {id:'C1',label:'How would you rate your overall contract coverage in this channel?',type:'rating5',hint:'1 = Most spend uncontracted · 3 = Roughly half covered · 5 = Nearly all spend under contract'},
+    {id:'C2',label:'Were all contracts for this channel successfully archived in the PMS repository (Stage 5)?',type:'yesno',hint:'If not, identify what is missing or outstanding.'},
+    {id:'C3',label:'Are there any contracts expiring in the next 3–6 months?',type:'text',hint:'Supplier name, expiry date, and whether renewal is already in progress.'},
+  ]},
+  {id:'D',title:'D — Spend visibility & process',questions:[
+    {id:'D1',label:'How visible is total spend in this channel today?',type:'rating5',hint:'1 = Very limited visibility · 3 = Reasonable but incomplete · 5 = Full and accurate spend data'},
+    {id:'D2',label:'Are purchases consistently raised as purchase orders before spend occurs?',type:'yesno',hint:'If no, describe where off-PO purchasing is happening.'},
+    {id:'D3',label:'What are the biggest procurement challenges in this channel right now?',type:'text',hint:'Be specific — these will shape focus areas across Stages 9–13.'},
+  ]},
+  {id:'E',title:'E — Capacity & readiness',questions:[
+    {id:'E1',label:'How confident are you in completing Phase II work for this channel alongside your normal duties?',type:'rating5',hint:'1 = Very concerned about capacity · 3 = Manageable with planning · 5 = Fully confident'},
+    {id:'E2',label:'Any competing priorities in the next 60 days the PM should be aware of?',type:'text',hint:'e.g. busy periods, system changes, team absences, other projects.'},
+    {id:'E3',label:'Anything else you would like the PM to know before your one-on-one meeting?',type:'text',hint:'Concerns, context, or anything that would help make the session more productive.'},
+  ]},
+];
+
+// q8State[ownerId][channel][questionId] = answer
+let q8State={};
+let s8CurrentView='form'; // 'form' or 'responses'
+let s8Mode='all'; // 'all' or 'per'
+
+function setS8Mode(mode){
+  s8Mode=mode;
+  // Update toggle button styles
+  const allBtn=document.getElementById('s8-mode-all');
+  const perBtn=document.getElementById('s8-mode-per');
+  if(allBtn&&perBtn){
+    if(mode==='all'){
+      allBtn.style.background='var(--accent)';allBtn.style.color='#fff';
+      perBtn.style.background='transparent';perBtn.style.color='var(--text2)';
+    } else {
+      perBtn.style.background='var(--accent)';perBtn.style.color='#fff';
+      allBtn.style.background='transparent';allBtn.style.color='var(--text2)';
+    }
+  }
+  // Update mode banner
+  const banner=document.getElementById('s8-mode-banner');
+  if(banner){
+    if(mode==='all'){
+      banner.style.background='#EEEDFE';banner.style.color='#26215C';banner.style.borderColor='#AFA9EC';
+      banner.innerHTML='<strong>All channels mode:</strong> Fill in one set of answers covering all your channels collectively. Use the <strong>Apply to all channels</strong> button to copy your answers across — you can still open individual channels afterwards to add specific details or overrides.';
+    } else {
+      banner.style.background='#E1F5EE';banner.style.color='#085041';banner.style.borderColor='#5DCAA5';
+      banner.innerHTML='<strong>Per channel mode:</strong> Answer each channel separately using the channel tabs. Answers are saved independently — switch between channels at any time.';
+    }
+  }
+  // Update channel selector visibility
+  const chSel=document.getElementById('s8-channel-sel');
+  if(chSel) chSel.style.display=mode==='per'?'':'none';
+  // Re-render form for current owner
+  const id=document.getElementById('s8-owner-sel').value;
+  if(!id) return;
+  const o=OWNERS.find(x=>x.id===id);
+  if(!o) return;
+  if(mode==='all'){
+    renderS8FormAll(id);
+  } else {
+    const ch=document.getElementById('s8-channel-sel').value||o.channels[0];
+    document.getElementById('s8-channel-sel').value=ch;
+    renderS8Form(id,ch);
+  }
+}
+
+
+
+function initQ8State(){
+  OWNERS.forEach(o=>{
+    if(!q8State[o.id]) q8State[o.id]={};
+    // Per-channel slots
+    o.channels.forEach(ch=>{
+      if(!q8State[o.id][ch]) q8State[o.id][ch]={};
+    });
+    // Collective all-channels slot
+    if(!q8State[o.id]['__all__']) q8State[o.id]['__all__']={};
+  });
+}
+
+async function loadQ8State(){
+  try{
+    const r=localStorage.getItem('pms-q8');
+    if(r){
+      const d=JSON.parse(r);
+      OWNERS.forEach(o=>{
+        if(d[o.id]) o.channels.forEach(ch=>{
+          if(d[o.id][ch]) q8State[o.id][ch]=d[o.id][ch];
+        });
+        if(d[o.id]&&d[o.id]['__all__']) q8State[o.id]['__all__']=d[o.id]['__all__'];
+      });
+    }
+  }catch(e){}
+}
+
+async function saveQ8State(){
+  try{localStorage.setItem('pms-q8',JSON.stringify(q8State));}catch(e){}
+}
+
+function getQ8CompletionPct(ownerId,ch){
+  const totalQ=Q8_SECTIONS.reduce((a,s)=>a+s.questions.length,0);
+  const ans=q8State[ownerId]&&q8State[ownerId][ch]?q8State[ownerId][ch]:{};
+  const answered=Object.keys(ans).filter(k=>!k.endsWith('-note')&&ans[k]&&ans[k]!=='').length;
+  return Math.round((answered/totalQ)*100);
+}
+
+function populateS8OwnerSelect(){
+  const sel=document.getElementById('s8-owner-sel');
+  if(!sel)return;
+  sel.innerHTML='<option value="">— select your name —</option>';
+  OWNERS.forEach(o=>{sel.innerHTML+=`<option value="${o.id}">${o.name}${o.temp?' (Temp)':''}</option>`;});
+}
+
+function onS8OwnerChange(){
+  const id=document.getElementById('s8-owner-sel').value;
+  const chSel=document.getElementById('s8-channel-sel');
+  const o=OWNERS.find(x=>x.id===id);
+  if(!id||!o){
+    chSel.style.display='none';
+    document.getElementById('s8-form-area').innerHTML='<div style="font-size:13px;color:#888;padding:24px 0;">Select your name to begin.</div>';
+    return;
+  }
+  // In per-channel mode show channel selector, in all-channels mode hide it
+  if(s8Mode==='per'){
+    chSel.style.display='';
+    chSel.innerHTML='<option value="">— select channel —</option>'+
+      o.channels.map(ch=>{
+        const pct=getQ8CompletionPct(id,ch);
+        return`<option value="${ch}">${ch} (${pct}% complete)</option>`;
+      }).join('');
+    document.getElementById('s8-form-area').innerHTML='<div style="font-size:13px;color:#888;padding:24px 0;">Select a channel to continue.</div>';
+  } else {
+    chSel.style.display='none';
+    renderS8FormAll(id);
+  }
+}
+
+function onS8ChannelChange(){
+  const id=document.getElementById('s8-owner-sel').value;
+  const ch=document.getElementById('s8-channel-sel').value;
+  if(!id||!ch)return;
+  renderS8Form(id,ch);
+}
+
+function renderS8FormAll(ownerId){
+  const el=document.getElementById('s8-form-area');
+  const o=OWNERS.find(x=>x.id===ownerId);
+  if(!el||!o)return;
+
+  // Use a special key 'ALL' to store the collective answers
+  const allKey='__all__';
+  if(!q8State[ownerId][allKey]) q8State[ownerId][allKey]={};
+  const ans=q8State[ownerId][allKey];
+
+  const totalQ=Q8_SECTIONS.reduce((a,s)=>a+s.questions.length,0);
+  const answered=Object.keys(ans).filter(k=>!k.endsWith('-note')&&ans[k]).length;
+  const pct=Math.round((answered/totalQ)*100);
+
+  // Channel completion summary
+  const chSummary=o.channels.map(ch=>{
+    const cp=getQ8CompletionPct(ownerId,ch);
+    const cpColor=cp===100?'#27500A':cp>0?'#0C447C':'#888';
+    const cpBg=cp===100?'#EAF3DE':cp>0?'#E6F1FB':'#F1EFE8';
+    return`<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;background:${cpBg};color:${cpColor};margin-right:4px;">${ch}: ${cp}%</span>`;
+  }).join('');
+
+  // Build sections — same structure as per-channel form but labelled for all channels
+  const sections=Q8_SECTIONS.map(sec=>{
+    const qHtml=sec.questions.map(q=>{
+      const val=ans[q.id]||'';
+      const note=ans[q.id+'-note']||'';
+      let input='';
+      if(q.type==='text'){
+        input=`<textarea class="q-textarea" id="q8all-${q.id}" rows="3" placeholder="Enter your response covering all channels…">${val}</textarea>`;
+      } else if(q.type==='yesno'){
+        const opts=['Yes','No','Partially'];
+        input=`<div class="q-radio-group">
+          ${opts.map(opt=>`<button class="q-radio${val===opt?' sel':''}"
+            onclick="setQ8RadioAll('${ownerId}','${q.id}','${opt}',this)">${opt}</button>`).join('')}
+        </div>
+        <textarea class="q-textarea" id="q8all-${q.id}-note" rows="2"
+          placeholder="Please provide details if No or Partially…"
+          style="margin-top:6px;">${note}</textarea>`;
+      } else if(q.type==='rating5'){
+        input=`<div class="q-rating">
+          ${[1,2,3,4,5].map(n=>`<button class="q-rating-btn${parseInt(val)===n?' sel':''}"
+            onclick="setQ8RatingAll('${ownerId}','${q.id}',${n},this)">${n}</button>`).join('')}
+        </div>`;
+      }
+      return`<div class="q-card">
+        <div class="q-label">${q.id}. ${q.label}</div>
+        ${q.hint?`<div class="q-hint">${q.hint}</div>`:''}
+        ${input}
+      </div>`;
+    }).join('');
+    return`<div class="q-section-title">${sec.title}</div>${qHtml}`;
+  }).join('');
+
+  el.innerHTML=`
+    <!-- Owner header -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+      <div style="width:42px;height:42px;border-radius:50%;background:${o.bg};color:${o.color};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;">${o.initials}</div>
+      <div>
+        <div style="font-size:15px;font-weight:600;">${o.name} — All channels collective response</div>
+        <div style="font-size:12px;color:#888;">${answered} of ${totalQ} questions answered</div>
+      </div>
+    </div>
+
+    <!-- Channel status row -->
+    <div style="margin-bottom:14px;">
+      <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Individual channel completion</div>
+      <div>${chSummary}</div>
+    </div>
+
+    <!-- All-channels progress -->
+    <div class="q-progress-row" style="margin-bottom:16px;">
+      <span style="font-weight:600;color:var(--text);">Collective response</span>
+      <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+        <div style="width:${pct}%;height:100%;background:${o.color};border-radius:3px;"></div>
+      </div>
+      <span>${pct}% complete</span>
+    </div>
+
+    <!-- Questions -->
+    ${sections}
+
+    <!-- Save + Apply buttons -->
+    <div style="display:flex;align-items:center;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);flex-wrap:wrap;">
+      <button class="q-save-btn" onclick="saveQ8All('${ownerId}')">💾 Save collective response</button>
+      <button class="q-save-btn" style="background:#0F6E56;" onclick="confirmApplyToAll('${ownerId}')">📋 Apply to all channels</button>
+      <span class="q-save-ok" id="q8all-save-ok">✓ Saved</span>
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-top:8px;font-style:italic;">
+      <strong>Apply to all channels</strong> copies these answers to every channel you manage. You can then switch to Per channel mode to review and override individual channels.
+    </div>`;
+}
+
+function setQ8RadioAll(ownerId,qId,val,btn){
+  btn.closest('.q-radio-group').querySelectorAll('.q-radio').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  if(!q8State[ownerId]['__all__']) q8State[ownerId]['__all__']={};
+  q8State[ownerId]['__all__'][qId]=val;
+}
+
+function setQ8RatingAll(ownerId,qId,val,btn){
+  btn.closest('.q-rating').querySelectorAll('.q-rating-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  if(!q8State[ownerId]['__all__']) q8State[ownerId]['__all__']={};
+  q8State[ownerId]['__all__'][qId]=String(val);
+}
+
+async function saveQ8All(ownerId){
+  if(!q8State[ownerId]) q8State[ownerId]={};
+  if(!q8State[ownerId]['__all__']) q8State[ownerId]['__all__']={};
+  Q8_SECTIONS.forEach(sec=>sec.questions.forEach(q=>{
+    const el=document.getElementById('q8all-'+q.id);
+    if(el) q8State[ownerId]['__all__'][q.id]=el.value;
+    const nel=document.getElementById('q8all-'+q.id+'-note');
+    if(nel) q8State[ownerId]['__all__'][q.id+'-note']=nel.value;
+  }));
+  await saveQ8State();
+  renderS8FormAll(ownerId);
+  const ok=document.getElementById('q8all-save-ok');
+  if(ok){ok.style.display='inline';setTimeout(()=>ok.style.display='none',3000);}
+}
+
+function confirmApplyToAll(ownerId){
+  const o=OWNERS.find(x=>x.id===ownerId);
+  if(!o)return;
+  const msg=`Apply this collective response to all ${o.channels.length} of your channels?\n\n${o.channels.join(', ')}\n\nExisting individual answers will be overwritten. You can still edit each channel separately afterwards.`;
+  if(!confirm(msg))return;
+  applyToAllChannels(ownerId);
+}
+
+async function applyToAllChannels(ownerId){
+  // First collect any unsaved textarea values
+  await saveQ8All(ownerId);
+  const allAns=q8State[ownerId]['__all__']||{};
+  const o=OWNERS.find(x=>x.id===ownerId);
+  if(!o)return;
+  // Copy to each channel
+  o.channels.forEach(ch=>{
+    if(!q8State[ownerId][ch]) q8State[ownerId][ch]={};
+    Object.keys(allAns).forEach(k=>{ q8State[ownerId][ch][k]=allAns[k]; });
+  });
+  await saveQ8State();
+  // Re-render to show updated channel completion badges
+  renderS8FormAll(ownerId);
+  alert(`✓ Answers applied to all ${o.channels.length} channels. Switch to Per channel mode to review or override individual channels.`);
+}
+
+function renderS8Form(ownerId,ch){
+  const el=document.getElementById('s8-form-area');
+  const o=OWNERS.find(x=>x.id===ownerId);
+  if(!el||!o)return;
+  const ans=q8State[ownerId][ch]||{};
+  const pct=getQ8CompletionPct(ownerId,ch);
+  const totalQ=Q8_SECTIONS.reduce((a,s)=>a+s.questions.length,0);
+  const answered=Object.keys(ans).filter(k=>!k.endsWith('-note')&&ans[k]).length;
+
+  // Channel tabs
+  const chTabs=o.channels.map(c=>{
+    const cp=getQ8CompletionPct(ownerId,c);
+    const isActive=c===ch;
+    return`<button class="q-ch-tab${isActive?' active':''}"
+      style="${isActive?'background:'+o.color+';':''}"
+      onclick="switchS8Channel('${ownerId}','${c.replace(/'/g,"\\'")}')">
+      ${c} <span class="q-ch-pct">${cp}%</span>
+    </button>`;
+  }).join('');
+
+  // Build question sections
+  const sections=Q8_SECTIONS.map(sec=>{
+    const qHtml=sec.questions.map(q=>{
+      const val=ans[q.id]||'';
+      const note=ans[q.id+'-note']||'';
+      let input='';
+      if(q.type==='text'){
+        input=`<textarea class="q-textarea" id="q8-${q.id}" rows="3" placeholder="Enter your response…">${val}</textarea>`;
+      } else if(q.type==='yesno'){
+        const opts=['Yes','No','Partially'];
+        input=`<div class="q-radio-group">
+          ${opts.map(opt=>`<button class="q-radio${val===opt?' sel':''}"
+            onclick="setQ8Radio('${ownerId}','${ch.replace(/'/g,"\\'")}','${q.id}','${opt}',this)">${opt}</button>`).join('')}
+        </div>
+        <textarea class="q-textarea" id="q8-${q.id}-note" rows="2"
+          placeholder="Please provide details if No or Partially…"
+          style="margin-top:6px;">${note}</textarea>`;
+      } else if(q.type==='rating5'){
+        input=`<div class="q-rating">
+          ${[1,2,3,4,5].map(n=>`<button class="q-rating-btn${parseInt(val)===n?' sel':''}"
+            onclick="setQ8Rating('${ownerId}','${ch.replace(/'/g,"\\'")}','${q.id}',${n},this)">${n}</button>`).join('')}
+        </div>`;
+      }
+      return`<div class="q-card">
+        <div class="q-label">${q.id}. ${q.label}</div>
+        ${q.hint?`<div class="q-hint">${q.hint}</div>`:''}
+        ${input}
+      </div>`;
+    }).join('');
+    return`<div class="q-section-title">${sec.title}</div>${qHtml}`;
+  }).join('');
+
+  el.innerHTML=`
+    <!-- Owner header -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+      <div style="width:42px;height:42px;border-radius:50%;background:${o.bg};color:${o.color};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;">${o.initials}</div>
+      <div>
+        <div style="font-size:15px;font-weight:600;">${o.name}</div>
+        <div style="font-size:12px;color:#888;">${answered} of ${totalQ} questions answered across this channel</div>
+      </div>
+    </div>
+
+    <!-- Channel tabs -->
+    <div style="margin-bottom:12px;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;">Select channel</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">${chTabs}</div>
+
+    <!-- Channel progress -->
+    <div class="q-progress-row">
+      <span style="font-weight:600;color:var(--text);">${ch}</span>
+      <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+        <div style="width:${pct}%;height:100%;background:${o.color};border-radius:3px;"></div>
+      </div>
+      <span>${pct}% complete</span>
+    </div>
+
+    <!-- Questions -->
+    ${sections}
+
+    <!-- Save -->
+    <div style="display:flex;align-items:center;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+      <button class="q-save-btn" onclick="saveQ8('${ownerId}','${ch.replace(/'/g,"\\'")}')">💾 Save answers for ${ch}</button>
+      <span class="q-save-ok" id="q8-save-ok-${ownerId}">✓ Saved successfully</span>
+    </div>`;
+}
+
+function switchS8Channel(ownerId,ch){
+  document.getElementById('s8-owner-sel').value=ownerId;
+  document.getElementById('s8-channel-sel').value=ch;
+  renderS8Form(ownerId,ch);
+}
+
+function setQ8Radio(ownerId,ch,qId,val,btn){
+  btn.closest('.q-radio-group').querySelectorAll('.q-radio').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  if(!q8State[ownerId][ch]) q8State[ownerId][ch]={};
+  q8State[ownerId][ch][qId]=val;
+}
+
+function setQ8Rating(ownerId,ch,qId,val,btn){
+  btn.closest('.q-rating').querySelectorAll('.q-rating-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  if(!q8State[ownerId][ch]) q8State[ownerId][ch]={};
+  q8State[ownerId][ch][qId]=String(val);
+}
+
+async function saveQ8(ownerId,ch){
+  if(!q8State[ownerId]) q8State[ownerId]={};
+  if(!q8State[ownerId][ch]) q8State[ownerId][ch]={};
+  // Collect all textarea values
+  Q8_SECTIONS.forEach(sec=>sec.questions.forEach(q=>{
+    const el=document.getElementById('q8-'+q.id);
+    if(el) q8State[ownerId][ch][q.id]=el.value;
+    const nel=document.getElementById('q8-'+q.id+'-note');
+    if(nel) q8State[ownerId][ch][q.id+'-note']=nel.value;
+  }));
+  await saveQ8State();
+  // Refresh form to update progress
+  renderS8Form(ownerId,ch);
+  // Update channel dropdown completion %
+  onS8OwnerChange();
+  document.getElementById('s8-owner-sel').value=ownerId;
+  document.getElementById('s8-channel-sel').value=ch;
+  const ok=document.getElementById('q8-save-ok-'+ownerId);
+  if(ok){ok.style.display='inline';setTimeout(()=>ok.style.display='none',3000);}
+}
+
+// ── PM master responses view ───────────────────────────────────────────────────
+function renderS8Responses(){
+  const el=document.getElementById('s8-responses-area');
+  if(!el)return;
+
+  const allQIds=Q8_SECTIONS.flatMap(s=>s.questions.map(q=>q.id));
+  const totalQ=allQIds.length;
+
+  // Summary table — one row per owner/channel
+  const rows=OWNERS.flatMap(o=>o.channels.map(ch=>{
+    const ans=q8State[o.id]&&q8State[o.id][ch]?q8State[o.id][ch]:{};
+    const answered=allQIds.filter(id=>ans[id]&&ans[id]!=='').length;
+    const pct=Math.round((answered/totalQ)*100);
+    const pctBg=pct===100?'#EAF3DE':pct>0?'#E6F1FB':'#F1EFE8';
+    const pctColor=pct===100?'#27500A':pct>0?'#0C447C':'#888';
+    return`<tr onclick="expandS8Response('${o.id}','${ch.replace(/'/g,"\\'")}',this)" style="cursor:pointer;">
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:${o.color};"></div>
+          <span style="font-weight:500;">${o.name}</span>
+        </div>
+      </td>
+      <td style="font-weight:500;">${ch}</td>
+      <td style="text-align:center;">
+        <span class="resp-pct-badge" style="background:${pctBg};color:${pctColor};">${pct}%</span>
+      </td>
+      <td style="font-size:10px;color:var(--text3);">${answered} of ${totalQ} answered</td>
+      <td style="font-size:10px;color:var(--accent);">▸ View responses</td>
+    </tr>
+    <tr id="exp-${o.id}-${ch.replace(/[^a-z0-9]/gi,'_')}" style="display:none;">
+      <td colspan="5" style="padding:0;background:var(--bg3);">
+        <div style="padding:14px 16px;">${buildS8Detail(o.id,ch)}</div>
+      </td>
+    </tr>`;
+  })).join('');
+
+  el.innerHTML=`
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <div style="padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;">All responses — 15 channels</span>
+        <button class="export-btn" style="background:#534AB7;" onclick="switchS8View('form')">✏ Back to form</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="resp-table">
+          <thead><tr>
+            <th>Owner</th><th>Channel</th><th style="text-align:center;">Completion</th>
+            <th>Progress</th><th></th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function buildS8Detail(ownerId,ch){
+  const ans=q8State[ownerId]&&q8State[ownerId][ch]?q8State[ownerId][ch]:{};
+  const sections=Q8_SECTIONS.map(sec=>{
+    const qRows=sec.questions.map(q=>{
+      const val=ans[q.id]||'<span style="color:#ccc;font-style:italic;">Not answered</span>';
+      const note=ans[q.id+'-note'];
+      return`<div style="margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:3px;">${q.id}. ${q.label}</div>
+        <div style="font-size:11px;color:var(--text2);padding:6px 10px;background:var(--bg2);border-radius:6px;border:1px solid var(--border);">${val}</div>
+        ${note?`<div style="font-size:10px;color:var(--text3);margin-top:4px;padding-left:8px;border-left:2px solid var(--border);">Note: ${note}</div>`:''}
+      </div>`;
+    }).join('');
+    return`<div style="margin-bottom:12px;">
+      <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">${sec.title}</div>
+      ${qRows}
+    </div>`;
+  }).join('');
+  return sections;
+}
+
+function expandS8Response(ownerId,ch,row){
+  const safeId=`exp-${ownerId}-${ch.replace(/[^a-z0-9]/gi,'_')}`;
+  const expRow=document.getElementById(safeId);
+  if(!expRow)return;
+  const isOpen=expRow.style.display!=='none';
+  // Close all first
+  document.querySelectorAll('[id^="exp-"]').forEach(r=>r.style.display='none');
+  if(!isOpen) expRow.style.display='table-row';
+}
+
+function switchS8View(view){
+  s8CurrentView=view;
+  const formSel=document.getElementById('s8-selector');
+  const formArea=document.getElementById('s8-form-area');
+  const respArea=document.getElementById('s8-responses-area');
+  const pmToggle=document.getElementById('s8-pm-toggle');
+  if(view==='responses'){
+    if(formSel)formSel.style.display='none';
+    if(formArea)formArea.style.display='none';
+    if(respArea){respArea.style.display='block';renderS8Responses();}
+  } else {
+    if(formSel)formSel.style.display='flex';
+    if(formArea)formArea.style.display='block';
+    if(respArea)respArea.style.display='none';
+  }
+}
+
+function initS8Tab(){
+  // Show PM toggle only for PM role
+  const toggle=document.getElementById('s8-pm-toggle');
+  if(toggle) toggle.style.display=currentUser&&currentUser.role==='pm'?'block':'none';
+  populateS8OwnerSelect();
+  // Sync toggle button visual state
+  setS8Mode(s8Mode);
+  // Auto-select the logged-in owner
+  if(currentUser&&currentUser.ownerId){
+    const sel=document.getElementById('s8-owner-sel');
+    if(sel) sel.value=currentUser.ownerId;
+    onS8OwnerChange();
+  }
+}
+
+function renderChannels(){
+  const el=document.getElementById('channels-content');
+  if(!el)return;
+
+  // Build grouped view: one card per owner, listing their channels + sub-categories
+  const ownerCards=OWNERS.map(o=>{
+    const chRows=o.channels.map(ch=>{
+      // Find sub-categories from pfChannels if available
+      let subCats=[];
+      if(typeof pfChannelsRef!=='undefined'){
+        const pfc=pfChannelsRef.find(c=>c.name===ch);
+        if(pfc&&pfc.categories.length) subCats=pfc.categories;
+      }
+      // Hardcode known sub-categories
+      const knownSubs={
+        'Transportation':[{name:'3PL'},{name:'Fleet'},{name:'Non-Fleet'}],
+        'Warehousing':[{name:'WoodPellets.com'},{name:'Other Warehousing'}],
+        'Packaging':[{name:'Bag Films'},{name:'Cover Bags'},{name:'Pallets'},{name:'Stretch Wrap'}],
+      };
+      if(knownSubs[ch]) subCats=knownSubs[ch];
+
+      const subHtml=subCats.length?`
+        <div style="margin-top:5px;padding-left:12px;border-left:2px solid ${o.color}30;">
+          ${subCats.map(s=>`<div style="font-size:10px;color:var(--text3);padding:2px 0;">
+            <span style="margin-right:4px;opacity:0.5;">↳</span>${s.name}
+          </div>`).join('')}
+        </div>`:'';
+
+      const pct=getChannelProgress(o.id,ch);
+      const progColor=pct===100?'#639922':pct>0?o.color:'#C0BDB8';
+
+      return`<div style="padding:10px 12px;border-bottom:1px solid var(--border);last-child:border-none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+          <div style="font-size:12px;font-weight:600;color:var(--text);">${ch}</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;">
+              <div style="width:${pct}%;height:100%;background:${progColor};border-radius:3px;"></div>
+            </div>
+            <span style="font-size:10px;color:var(--text3);width:28px;text-align:right;">${pct}%</span>
+          </div>
+        </div>
+        ${subHtml}
+      </div>`;
+    }).join('');
+
+    const ownerPct=getOwnerProgress(o.id);
+    const totalCh=o.channels.length;
+    const doneCh=o.channels.filter(ch=>getChannelProgress(o.id,ch)===100).length;
+
+    return`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;break-inside:avoid;">
+      <!-- Owner header -->
+      <div style="padding:14px 16px;background:${o.bg};border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+        <div style="width:38px;height:38px;border-radius:50%;background:${o.color};color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;">${o.initials}</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);">${o.name}${o.temp?`<span style="font-size:9px;font-weight:600;padding:1px 6px;border-radius:8px;background:#FAEEDA;color:#633806;margin-left:6px;vertical-align:middle;">Temp until ${o.tempUntil}</span>`:''}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:1px;">${totalCh} channel${totalCh>1?'s':''} · ${doneCh} complete</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:18px;font-weight:700;color:${o.color};">${ownerPct}%</div>
+          <div style="font-size:9px;color:var(--text3);">overall</div>
+        </div>
+      </div>
+      <!-- Channel list -->
+      <div>${chRows}</div>
+    </div>`;
+  }).join('');
+
+  // Summary table at top
+  const allRows=OWNERS.flatMap(o=>o.channels.map(ch=>{
+    const knownSubs={'Transportation':['3PL','Fleet','Non-Fleet'],'Warehousing':['WoodPellets.com','Other Warehousing'],'Packaging':['Bag Films','Cover Bags','Pallets','Stretch Wrap']};
+    const subs=knownSubs[ch]||[];
+    const pct=getChannelProgress(o.id,ch);
+    const pctColor=pct===100?'#27500A':pct>0?'#0C447C':'#888';
+    const pctBg=pct===100?'#EAF3DE':pct>0?'#E6F1FB':'#F1EFE8';
+    return`<tr>
+      <td style="padding:7px 12px;font-size:12px;font-weight:500;color:var(--text);border-bottom:1px solid var(--border);border-right:1px solid var(--border);">${ch}</td>
+      <td style="padding:7px 12px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:${o.color};flex-shrink:0;"></div>
+          <span style="font-size:12px;color:var(--text);">${o.name}${o.temp?' <span style="font-size:9px;color:#633806;">(Temp)</span>':''}</span>
+        </div>
+      </td>
+      <td style="padding:7px 12px;font-size:11px;color:var(--text3);border-bottom:1px solid var(--border);border-right:1px solid var(--border);">${subs.length?subs.join(', '):'—'}</td>
+      <td style="padding:7px 12px;border-bottom:1px solid var(--border);text-align:center;">
+        <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;background:${pctBg};color:${pctColor};">${pct}%</span>
+      </td>
+    </tr>`;
+  })).join('');
+
+  el.innerHTML=`
+    <!-- Quick reference table -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:20px;">
+      <div style="padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;">
+        Quick reference — all 15 channels
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="background:#1F3864;">
+              <th style="padding:8px 12px;font-size:10px;font-weight:600;color:#fff;text-align:left;border-right:1px solid rgba(255,255,255,0.15);">Channel</th>
+              <th style="padding:8px 12px;font-size:10px;font-weight:600;color:#fff;text-align:left;border-right:1px solid rgba(255,255,255,0.15);">Owner</th>
+              <th style="padding:8px 12px;font-size:10px;font-weight:600;color:#fff;text-align:left;border-right:1px solid rgba(255,255,255,0.15);">Sub-categories</th>
+              <th style="padding:8px 12px;font-size:10px;font-weight:600;color:#fff;text-align:center;width:80px;">Progress</th>
+            </tr>
+          </thead>
+          <tbody>${allRows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Owner cards grid -->
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px;">Owner breakdown</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">
+      ${ownerCards}
+    </div>
+
+    <!-- Note -->
+    <div style="margin-top:16px;padding:10px 14px;background:var(--bg3);border-radius:8px;font-size:11px;color:var(--text3);border-left:3px solid #EF9F27;">
+      <strong style="color:#633806;">Note:</strong> CapEx is currently under Luann Lafreniere as a joint initiative — permanent co-ownership with Blaine Emery to be confirmed. Rolling Stock is under Arup Basu as temporary owner until Sep 1, 2026.
+    </div>`;
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// INSTRUCTIONS PRINT
+// ═══════════════════════════════════════════════════════════════════════════════
+function printInstructions(role){
+  const sectionId=role==='pm'?'help-pm-section':'help-owner-section';
+  const el=document.getElementById(sectionId);
+  if(!el)return;
+  const now=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  const title=role==='pm'?'Program Manager Guide':'Channel Owner Guide';
+  const accent=role==='pm'?'#0F6E56':'#1F3864';
+
+  const html=`<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>PMS Instructions — ${title}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#1a1a18;padding:20px 24px;font-size:11px;line-height:1.5;}
+@page{margin:12mm 14mm;size:A4 portrait;}
+.header{background:${accent};color:#fff;padding:12px 16px;border-radius:8px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.header-title{font-size:16px;font-weight:700;}.header-sub{font-size:10px;opacity:0.8;margin-top:2px;}.header-meta{font-size:9px;opacity:0.7;text-align:right;}
+.help-step-row{display:flex;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #E0DED8;}
+.help-step-row:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.help-step-num{width:22px;height:22px;border-radius:50%;background:${accent};color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;}
+.help-step-title{font-size:11px;font-weight:700;color:#1a1a18;margin-bottom:3px;}.help-step-body{font-size:10.5px;color:#5f5e5a;line-height:1.6;}
+.help-list{margin:4px 0 0 14px;}.help-list li{margin-bottom:2px;font-size:10.5px;color:#5f5e5a;line-height:1.5;}
+.help-tip{display:flex;gap:8px;padding:8px 10px;background:#FAEEDA;border:1px solid #FAC775;border-radius:6px;margin-top:10px;font-size:10px;color:#633806;line-height:1.5;}
+.footer{margin-top:12px;padding-top:8px;border-top:1px solid #E0DED8;font-size:9px;color:#888;display:flex;justify-content:space-between;}
+</style></head><body>
+<div class="header">
+  <div><div class="header-title">${title} — PMS Channel Owner App</div>
+  <div class="header-sub">Procurement Management System · Lignetics / Pellet Heat · FY2026</div></div>
+  <div class="header-meta">Printed: ${now}<br>abasu@lignetics.com</div>
+</div>
+${el.querySelector('.help-body').innerHTML}
+<div class="footer"><span>Procurement Management System · ${title} · FY2026</span><span>Generated: ${now}</span></div>
+</body></html>`;
+
+  const win=window.open('','_blank','width=900,height=750');
+  win.document.write(html);
+  win.document.close();
+  win.onload=function(){win.focus();win.print();};
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PRINT / PDF — channel summary page
+// ═══════════════════════════════════════════════════════════════════════════════
+function buildChannelSummaryHTML(id, ch){
+  const o=OWNERS.find(x=>x.id===id);
+  if(!o)return '';
+  const pct=getChannelProgress(id,ch);
+  const now=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+
+  // Stage table rows
+  let totalApplicable=0,totalDone=0,totalIP=0,totalLate=0;
+  const stageRows=Object.entries(STAGE_NAMES).map(([sn,sname])=>{
+    const s=parseInt(sn);
+    const d=state[id][ch][s];
+    const ph=PHASE_FOR[s];
+    if(!d.applicable){
+      return`<tr style="opacity:0.45;background:#F5F4F1;">
+        <td style="padding:6px 10px;font-size:11px;color:#888;">S${s}</td>
+        <td style="padding:6px 10px;font-size:11px;">${sname}</td>
+        <td style="padding:6px 10px;font-size:10px;text-align:center;background:${ph.color};color:${ph.tc};">${ph.label}</td>
+        <td colspan="4" style="padding:6px 10px;font-size:11px;color:#888;text-align:center;font-style:italic;">N/A — not applicable to this channel</td>
+        <td style="padding:6px 10px;font-size:11px;color:#888;"></td>
+      </tr>`;
+    }
+    totalApplicable++;
+    if(d.status==='done')totalDone++;
+    else if(d.status==='ip')totalIP++;
+    if(isLate(d))totalLate++;
+    const slip=slipDays(d);
+    const slipText=slip===null?'—':slip===0?'On time':slip>0?'+'+slip+'d late':Math.abs(slip)+'d early';
+    const slipColor=slip===null?'#888':slip>0?'#E24B4A':slip<0?'#27500A':'#27500A';
+    const statusBg=d.status==='done'?'#EAF3DE':d.status==='ip'?'#E6F1FB':'#F1EFE8';
+    const statusColor=d.status==='done'?'#27500A':d.status==='ip'?'#0C447C':'#5F5E5A';
+    const lateBg=isLate(d)?'#FCEBEB':'transparent';
+    return`<tr style="background:${lateBg};">
+      <td style="padding:6px 10px;font-size:11px;color:#888;">S${s}</td>
+      <td style="padding:6px 10px;font-size:11px;font-weight:500;">${sname}</td>
+      <td style="padding:6px 10px;font-size:10px;text-align:center;background:${ph.color};color:${ph.tc};">${ph.label}</td>
+      <td style="padding:6px 10px;font-size:11px;text-align:center;background:${statusBg};color:${statusColor};font-weight:600;">${S_LBL[d.status]}</td>
+      <td style="padding:6px 10px;font-size:10px;text-align:center;color:#5f5e5a;">${d.plannedStart||'—'} → ${d.plannedEnd||'—'}</td>
+      <td style="padding:6px 10px;font-size:10px;text-align:center;color:#5f5e5a;">${d.actualStart||'—'} → ${d.actualEnd||'—'}</td>
+      <td style="padding:6px 10px;font-size:11px;text-align:center;font-weight:500;color:${slipColor};">${slipText}</td>
+      <td style="padding:6px 10px;font-size:10px;color:#5f5e5a;">${d.notes||''}</td>
+    </tr>`;
+  }).join('');
+
+  // Progress bar (inline SVG)
+  const barW=340,barH=14;
+  const fillW=Math.round((pct/100)*barW);
+  const progressBar=`<svg width="${barW}" height="${barH}" style="display:block;border-radius:7px;overflow:hidden;">
+    <rect width="${barW}" height="${barH}" fill="#E0DED8" rx="7"/>
+    <rect width="${fillW}" height="${barH}" fill="${o.color}" rx="7"/>
+  </svg>`;
+
+  // Traffic light for overall channel
+  const tl=totalLate>0?{icon:'!',color:'#E24B4A',bg:'#FCEBEB',label:'Action needed — overdue stages'}:
+            pct>=80?{icon:'✓',color:'#27500A',bg:'#EAF3DE',label:'On track'}:
+            pct>=40?{icon:'~',color:'#633806',bg:'#FAEEDA',label:'In progress — monitor'}:
+            {icon:'·',color:'#888',bg:'#F1EFE8',label:'Not yet started'};
+
+  return`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PMS — ${ch} — ${o.name}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:#fff;color:#1a1a18;padding:28px 32px;}
+  table{width:100%;border-collapse:collapse;}
+  th,td{border:1px solid #E0DED8;}
+  @media print{
+    @page{margin:15mm 15mm 15mm 15mm;size:A4 landscape;}
+    body{padding:0;}
+    .no-print{display:none!important;}
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:3px solid #1F3864;">
+  <div>
+    <div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Procurement Management System — Lignetics / Pellet Heat · FY2026</div>
+    <div style="font-size:22px;font-weight:700;color:#1F3864;margin-bottom:2px;">${ch}</div>
+    <div style="font-size:13px;color:#5f5e5a;">Channel owner: <strong>${o.name}</strong></div>
+  </div>
+  <div style="text-align:right;">
+    <div style="font-size:10px;color:#888;margin-bottom:4px;">Printed / exported</div>
+    <div style="font-size:12px;font-weight:500;color:#1a1a18;">${now}</div>
+    <div style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:${tl.bg};border-radius:20px;border:1px solid ${tl.color};">
+      <span style="font-size:13px;font-weight:700;color:${tl.color};">${tl.icon}</span>
+      <span style="font-size:11px;font-weight:600;color:${tl.color};">${tl.label}</span>
+    </div>
+  </div>
+</div>
+
+<!-- SUMMARY CARDS -->
+<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;">
+  <div style="background:#F5F4F1;border-radius:8px;padding:10px 12px;">
+    <div style="font-size:10px;color:#888;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em;">Progress</div>
+    <div style="font-size:22px;font-weight:700;color:#1a1a18;">${pct}%</div>
+    <div style="margin-top:6px;">${progressBar}</div>
+  </div>
+  <div style="background:#EAF3DE;border-radius:8px;padding:10px 12px;">
+    <div style="font-size:10px;color:#27500A;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em;">Complete</div>
+    <div style="font-size:22px;font-weight:700;color:#27500A;">${totalDone}</div>
+    <div style="font-size:10px;color:#27500A;">of ${totalApplicable} applicable</div>
+  </div>
+  <div style="background:#E6F1FB;border-radius:8px;padding:10px 12px;">
+    <div style="font-size:10px;color:#0C447C;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em;">In progress</div>
+    <div style="font-size:22px;font-weight:700;color:#0C447C;">${totalIP}</div>
+    <div style="font-size:10px;color:#0C447C;">stages active</div>
+  </div>
+  <div style="background:${totalLate>0?'#FCEBEB':'#F5F4F1'};border-radius:8px;padding:10px 12px;">
+    <div style="font-size:10px;color:${totalLate>0?'#791F1F':'#888'};margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em;">Overdue</div>
+    <div style="font-size:22px;font-weight:700;color:${totalLate>0?'#E24B4A':'#888'};">${totalLate}</div>
+    <div style="font-size:10px;color:${totalLate>0?'#791F1F':'#888'};">past planned end</div>
+  </div>
+  <div style="background:#F5F4F1;border-radius:8px;padding:10px 12px;">
+    <div style="font-size:10px;color:#888;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em;">N/A stages</div>
+    <div style="font-size:22px;font-weight:700;color:#888;">${15-totalApplicable}</div>
+    <div style="font-size:10px;color:#888;">not applicable</div>
+  </div>
+</div>
+
+<!-- STAGE TABLE -->
+<table>
+  <thead>
+    <tr style="background:#1F3864;">
+      <th style="padding:8px 10px;font-size:10px;font-weight:600;color:#fff;text-align:left;width:40px;">#</th>
+      <th style="padding:8px 10px;font-size:10px;font-weight:600;color:#fff;text-align:left;">Stage name</th>
+      <th style="padding:8px 10px;font-size:10px;font-weight:600;color:#fff;text-align:center;width:80px;">Phase</th>
+      <th style="padding:8px 10px;font-size:10px;font-weight:600;color:#fff;text-align:center;width:100px;">Status</th>
+      <th style="padding:8px 10px;font-size:10px;font-weight:600;color:#fff;text-align:center;width:150px;">Planned dates</th>
+      <th style="padding:8px 10px;font-size:10px;font-weight:600;color:#fff;text-align:center;width:150px;">Actual dates</th>
+      <th style="padding:8px 10px;font-size:10px;font-weight:600;color:#fff;text-align:center;width:90px;">Slippage</th>
+              <th style="padding:8px 10px;font-size:10px;font-weight:600;color:#fff;text-align:left;">Notes</th>
+              <th style="padding:8px 10px;font-size:10px;font-weight:600;color:#fff;text-align:left;">Notes</th>
+    </tr>
+  </thead>
+  <tbody>${stageRows}</tbody>
+</table>
+
+<!-- FOOTER -->
+<div style="margin-top:16px;padding-top:10px;border-top:1px solid #E0DED8;display:flex;justify-content:space-between;font-size:10px;color:#888;">
+  <span>Procurement Management System · ${ch} · ${o.name} · FY2026</span>
+  <span>Generated: ${now}</span>
+</div>
+
+</body>
+</html>`;
+}
+
+function printChannel(id, ch){
+  const html=buildChannelSummaryHTML(id,ch);
+  const win=window.open('','_blank','width=1100,height=800');
+  win.document.write(html);
+  win.document.close();
+  win.onload=function(){win.focus();win.print();};
+}
+
+function pdfChannel(id, ch){
+  const html=buildChannelSummaryHTML(id,ch);
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const o=OWNERS.find(x=>x.id===id);
+  const now=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  const ts=now.getFullYear()+pad(now.getMonth()+1)+pad(now.getDate())+'_'+pad(now.getHours())+pad(now.getMinutes());
+  const safeCh=ch.replace(/[^a-z0-9]/gi,'_');
+  a.href=url;
+  a.download=`PMS_${safeCh}_${o?o.initials:'CH'}_${ts}.html`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+
+function exportXLSX(){
+  if(typeof XLSX==='undefined'){alert('Excel library not loaded. Please check your internet connection and try again.');return;}
+
+  const wb=XLSX.utils.book_new();
+
+  // ── OWNER COLOURS (hex, no #) for fill ──────────────────────────────────────
+  const OWNER_FILLS={
+    blaine:  {fgColor:{rgb:'7F77DD'}},
+    margaret:{fgColor:{rgb:'1D9E75'}},
+    luann:   {fgColor:{rgb:'EF9F27'}},
+    johnc:   {fgColor:{rgb:'378ADD'}},
+    tonyw:   {fgColor:{rgb:'639922'}},
+    arup:    {fgColor:{rgb:'BA7517'}},
+  };
+  const PH_FILLS={
+    'Phase I':  {fgColor:{rgb:'B4B2A9'}},
+    'Phase II': {fgColor:{rgb:'AFA9EC'}},
+    'Phase III':{fgColor:{rgb:'5DCAA5'}},
+  };
+  const STATUS_FILLS={
+    'Complete':    {fgColor:{rgb:'EAF3DE'}},
+    'In progress': {fgColor:{rgb:'E6F1FB'}},
+    'Not started': {fgColor:{rgb:'F1EFE8'}},
+    'N/A':         {fgColor:{rgb:'ECECEC'}},
+  };
+  const SLIP_LATE_FILL= {fgColor:{rgb:'FCEBEB'}};
+  const SLIP_OK_FILL=   {fgColor:{rgb:'EAF3DE'}};
+  const HEADER_FILL=    {fgColor:{rgb:'1F3864'}};
+  const HEADER_FONT=    {bold:true,color:{rgb:'FFFFFF'},sz:10};
+  const BOLD=           {bold:true,sz:10};
+  const NORMAL=         {sz:10};
+  const CENTER=         {horizontal:'center',vertical:'center',wrapText:true};
+  const LEFT=           {horizontal:'left',vertical:'center',wrapText:true};
+  const thin={style:'thin',color:{rgb:'C0BDB8'}};
+  const BORDER={top:thin,bottom:thin,left:thin,right:thin};
+
+  function cell(v,font,fill,alignment){
+    const c={v:v,t:typeof v==='number'?'n':'s'};
+    const s={};
+    if(font) s.font=font;
+    if(fill) s.fill={patternType:'solid',...fill};
+    if(alignment) s.alignment=alignment;
+    s.border=BORDER;
+    c.s=s;
+    return c;
+  }
+
+  // ── TAB 1: RAW DATA ─────────────────────────────────────────────────────────
+  const dataRows=[];
+  const dataHeaders=['Owner','Channel','Stage No.','Stage Name','Phase',
+    'Applicable','Status','Planned Start','Planned End',
+    'Actual Start','Actual End','Slippage (days)','Notes'];
+
+  dataRows.push(dataHeaders.map(h=>cell(h,HEADER_FONT,{fgColor:{rgb:'1F3864'}},CENTER)));
+
+  OWNERS.forEach(o=>{
+    o.channels.forEach(ch=>{
+      for(let s=1;s<=15;s++){
+        const d=state[o.id][ch][s];
+        const sl=slipDays(d);
+        const statusText=d.applicable?S_LBL[d.status]:'N/A';
+        const slipFill=sl===null?null:sl>0?SLIP_LATE_FILL:sl<0?SLIP_OK_FILL:null;
+        dataRows.push([
+          cell(o.name,        BOLD,  OWNER_FILLS[o.id], LEFT),
+          cell(ch,            NORMAL,null,               LEFT),
+          cell(s,             NORMAL,null,               CENTER),
+          cell(STAGE_NAMES[s],NORMAL,null,               LEFT),
+          cell(PHASE_FOR[s].label, NORMAL, PH_FILLS[PHASE_FOR[s].label], CENTER),
+          cell(d.applicable?'Yes':'No', NORMAL, null, CENTER),
+          cell(statusText, NORMAL, STATUS_FILLS[statusText]||null, CENTER),
+          cell(d.plannedStart||'', NORMAL, null, CENTER),
+          cell(d.plannedEnd||'',   NORMAL, null, CENTER),
+          cell(d.actualStart||'',  NORMAL, null, CENTER),
+          cell(d.actualEnd||'',    NORMAL, null, CENTER),
+          cell(sl!==null?sl:'', NORMAL, slipFill, CENTER),
+          cell(d.notes||'',    NORMAL, null,     LEFT),
+        ]);
+      }
+    });
+  });
+
+  const ws1=XLSX.utils.aoa_to_sheet(dataRows.map(r=>r.map(c=>c.v)));
+  // Apply styles manually
+  dataRows.forEach((row,ri)=>{
+    row.forEach((c,ci)=>{
+      const addr=XLSX.utils.encode_cell({r:ri,c:ci});
+      if(!ws1[addr]) ws1[addr]={v:c.v,t:c.t};
+      ws1[addr].s=c.s;
+    });
+  });
+  ws1['!cols']=[{wch:20},{wch:26},{wch:8},{wch:26},{wch:10},{wch:10},{wch:14},{wch:13},{wch:13},{wch:13},{wch:13},{wch:14},{wch:40}];
+  ws1['!freeze']={xSplit:0,ySplit:1};
+  XLSX.utils.book_append_sheet(wb,ws1,'Stage Data');
+
+  // ── TAB 3: MASTER GANTT — program-level, 15 stages ──────────────────────────
+  const mgRows=[];
+
+  // Headers
+  const mgHeaders=['Stage No.','Stage Name','Phase',
+    'Total Applicable','Complete','In Progress','Not Started','Overdue',
+    '% Complete','Avg Slippage (days)','Traffic Light','Status'];
+  mgRows.push(mgHeaders.map(h=>cell(h,HEADER_FONT,{fgColor:{rgb:'1F3864'}},CENTER)));
+
+  for(let s=1;s<=15;s++){
+    let totalApp=0,totalDone=0,totalIP=0,totalNS=0,totalLate=0;
+    let slips=[];
+    OWNERS.forEach(o=>{
+      o.channels.forEach(ch=>{
+        const d=state[o.id][ch][s];
+        if(!d.applicable)return;
+        totalApp++;
+        if(d.status==='done')totalDone++;
+        else if(d.status==='ip'){totalIP++;if(isLate(d))totalLate++;}
+        else totalNS++;
+        const sl=slipDays(d);
+        if(sl!==null)slips.push(sl);
+      });
+    });
+    const pct=totalApp?Math.round((totalDone/totalApp)*100):0;
+    const avgSlip=slips.length?Math.round(slips.reduce((a,b)=>a+b,0)/slips.length):null;
+
+    // Traffic light
+    let tl,tlText,tlFill;
+    if(totalLate>0){tl='🔴';tlText='Overdue';tlFill={fgColor:{rgb:'FCEBEB'}};}
+    else if(pct>=80){tl='🟢';tlText='On track';tlFill={fgColor:{rgb:'EAF3DE'}};}
+    else if(pct>=40||totalIP>0){tl='🟡';tlText='In progress';tlFill={fgColor:{rgb:'FAEEDA'}};}
+    else{tl='⚫';tlText='Not started';tlFill={fgColor:{rgb:'F1EFE8'}};}
+
+    const ph=PHASE_FOR[s];
+    const rowFill={fgColor:{rgb:{'Phase I':'F8F7F4','Phase II':'F4F3FE','Phase III':'F0FAF6'}[ph.label]||'FFFFFF'}};
+
+    mgRows.push([
+      cell(s,             BOLD,  rowFill, CENTER),
+      cell(STAGE_NAMES[s],BOLD,  rowFill, LEFT),
+      cell(ph.label,      NORMAL,PH_FILLS[ph.label], CENTER),
+      cell(totalApp,      NORMAL,rowFill, CENTER),
+      cell(totalDone,     NORMAL,totalDone>0?STATUS_FILLS['Complete']:rowFill, CENTER),
+      cell(totalIP,       NORMAL,totalIP>0?STATUS_FILLS['In progress']:rowFill, CENTER),
+      cell(totalNS,       NORMAL,rowFill, CENTER),
+      cell(totalLate,     NORMAL,totalLate>0?SLIP_LATE_FILL:rowFill, CENTER),
+      cell(pct+'%',       BOLD,  pct>=80?STATUS_FILLS['Complete']:pct>=40?STATUS_FILLS['In progress']:rowFill, CENTER),
+      cell(avgSlip!==null?avgSlip:'—', NORMAL, avgSlip!==null&&avgSlip>0?SLIP_LATE_FILL:avgSlip!==null&&avgSlip<0?SLIP_OK_FILL:rowFill, CENTER),
+      cell(tl,            BOLD,  tlFill, CENTER),
+      cell(tlText,        NORMAL,tlFill, CENTER),
+    ]);
+  }
+
+  // Program summary row
+  let grandApp=0,grandDone=0;
+  for(let s=1;s<=15;s++){
+    OWNERS.forEach(o=>o.channels.forEach(ch=>{
+      const d=state[o.id][ch][s];
+      if(!d.applicable)return;
+      grandApp++;
+      if(d.status==='done')grandDone++;
+    }));
+  }
+  const grandPct=grandApp?Math.round((grandDone/grandApp)*100):0;
+
+  mgRows.push([]); // blank row
+  mgRows.push([
+    cell('OVERALL',HEADER_FONT,{fgColor:{rgb:'1F3864'}},CENTER),
+    cell('All 15 Stages — All 14 Channels',HEADER_FONT,{fgColor:{rgb:'1F3864'}},LEFT),
+    cell('',NORMAL,{fgColor:{rgb:'1F3864'}},CENTER),
+    cell(grandApp,HEADER_FONT,{fgColor:{rgb:'1F3864'}},CENTER),
+    cell(grandDone,HEADER_FONT,{fgColor:{rgb:'1F3864'}},CENTER),
+    cell('',NORMAL,{fgColor:{rgb:'1F3864'}},CENTER),
+    cell('',NORMAL,{fgColor:{rgb:'1F3864'}},CENTER),
+    cell('',NORMAL,{fgColor:{rgb:'1F3864'}},CENTER),
+    cell(grandPct+'%',HEADER_FONT,{fgColor:{rgb:'1F3864'}},CENTER),
+    cell('',NORMAL,{fgColor:{rgb:'1F3864'}},CENTER),
+    cell(grandPct>=80?'🟢':grandPct>=40?'🟡':'⚫',HEADER_FONT,{fgColor:{rgb:'1F3864'}},CENTER),
+    cell(grandPct>=80?'On track':grandPct>=40?'In progress':'Not started',HEADER_FONT,{fgColor:{rgb:'1F3864'}},CENTER),
+  ]);
+
+  const ws3=XLSX.utils.aoa_to_sheet(mgRows.map(r=>r.map?r.map(c=>c&&c.v!==undefined?c.v:''):[]));
+  mgRows.forEach((row,ri)=>{
+    if(!row.map)return;
+    row.forEach((c,ci)=>{
+      if(!c||c.v===undefined)return;
+      const addr=XLSX.utils.encode_cell({r:ri,c:ci});
+      if(!ws3[addr])ws3[addr]={v:c.v,t:typeof c.v==='number'?'n':'s'};
+      ws3[addr].s=c.s;
+    });
+  });
+  ws3['!cols']=[{wch:8},{wch:26},{wch:10},{wch:12},{wch:10},{wch:12},{wch:13},{wch:9},{wch:10},{wch:16},{wch:8},{wch:14}];
+  ws3['!freeze']={xSplit:0,ySplit:1};
+  XLSX.utils.book_append_sheet(wb,ws3,'Master Gantt');
+
+  // ── TAB 2: CHANNEL GANTT (colour-coded cells) ─────────────────────────────────
+  // Timeline: Feb 2026 → Oct 2026 = 9 months
+  // Columns: Channel label | Owner | % Done | Month columns (weekly resolution = ~36 cols)
+
+  const ganttStart=new Date('2026-02-01');
+  const ganttEnd=new Date('2026-10-31');
+  const totalDays=Math.round((ganttEnd-ganttStart)/(1000*60*60*24));
+
+  // Build week columns: one col per week
+  const weekCols=[];
+  let wd=new Date(ganttStart);
+  while(wd<=ganttEnd){
+    weekCols.push(new Date(wd));
+    wd=new Date(wd.getTime()+7*24*60*60*1000);
+  }
+
+  function weekIdx(dateStr){
+    if(!dateStr)return null;
+    const d=new Date(dateStr);
+    return Math.max(0,Math.min(weekCols.length-1,Math.round((d-ganttStart)/(7*24*60*60*1000))));
+  }
+
+  const FIXED_COLS=4; // Channel | Owner | % | Slippage
+  const ganttRows=[];
+
+  // Header row 1: month labels
+  const mRow=[cell('Channel',HEADER_FONT,{fgColor:{rgb:'1F3864'}},CENTER),
+              cell('Owner',  HEADER_FONT,{fgColor:{rgb:'1F3864'}},CENTER),
+              cell('% Done', HEADER_FONT,{fgColor:{rgb:'1F3864'}},CENTER),
+              cell('Slippage',HEADER_FONT,{fgColor:{rgb:'1F3864'}},CENTER)];
+  let lastMonth=-1;
+  weekCols.forEach((w,wi)=>{
+    const m=w.getMonth();
+    const mName=w.toLocaleString('default',{month:'short'})+' '+w.getFullYear();
+    mRow.push(cell(m!==lastMonth?mName:'',HEADER_FONT,{fgColor:{rgb:'1F3864'}},CENTER));
+    lastMonth=m;
+  });
+  ganttRows.push(mRow);
+
+  // Header row 2: week numbers
+  const wRow=[cell('',BOLD,{fgColor:{rgb:'ECEAE5'}},CENTER),
+              cell('',BOLD,{fgColor:{rgb:'ECEAE5'}},CENTER),
+              cell('',BOLD,{fgColor:{rgb:'ECEAE5'}},CENTER),
+              cell('',BOLD,{fgColor:{rgb:'ECEAE5'}},CENTER)];
+  weekCols.forEach((w,wi)=>{
+    wRow.push(cell('W'+(wi+1),{sz:8,color:{rgb:'888888'}},{fgColor:{rgb:'ECEAE5'}},CENTER));
+  });
+  ganttRows.push(wRow);
+
+  // Today marker row
+  const todayWi=weekIdx(new Date().toISOString().slice(0,10));
+  const todayRow=[cell('TODAY →',{bold:true,sz:9,color:{rgb:'E24B4A'}},null,CENTER),
+                  cell('',NORMAL,null,CENTER),cell('',NORMAL,null,CENTER),cell('',NORMAL,null,CENTER)];
+  weekCols.forEach((w,wi)=>{
+    todayRow.push(cell(wi===todayWi?'▼':'',{bold:true,sz:9,color:{rgb:'E24B4A'}},
+      wi===todayWi?{fgColor:{rgb:'FCEBEB'}}:null,CENTER));
+  });
+  ganttRows.push(todayRow);
+
+  // Channel rows
+  OWNERS.forEach(o=>{
+    o.channels.forEach(ch=>{
+      const applicable=Object.entries(state[o.id][ch]).filter(([,v])=>v.applicable);
+      const pStarts=applicable.map(([,v])=>v.plannedStart).filter(Boolean).sort();
+      const pEnds=  applicable.map(([,v])=>v.plannedEnd).filter(Boolean).sort().reverse();
+      const aStarts=applicable.map(([,v])=>v.actualStart).filter(Boolean).sort();
+      const aEnds=  applicable.map(([,v])=>v.actualEnd).filter(Boolean).sort().reverse();
+      const pct=getChannelProgress(o.id,ch);
+
+      const ps=pStarts[0],pe=pEnds[0],as=aStarts[0],ae=aEnds[0];
+      const psi=ps?weekIdx(ps):null, pei=pe?weekIdx(pe):null;
+      const asi=as?weekIdx(as):null, aei=ae?weekIdx(ae):null;
+      const slip=as&&ae&&pe?daysBetween(pe,ae):null;
+      const slipText=slip===null?'TBD':slip===0?'On time':slip>0?'+'+slip+'d':slip+'d';
+      const slipFill=slip===null?null:slip>0?SLIP_LATE_FILL:slip<0?SLIP_OK_FILL:null;
+
+      // Owner fill (light version)
+      const ownerFillHex={
+        blaine:'EEEDFE',margaret:'E1F5EE',luann:'FAEEDA',
+        johnc:'E6F1FB',tonyw:'EAF3DE',arup:'FDF3E3'
+      }[o.id]||'F5F4F1';
+
+      const row=[
+        cell(ch,    BOLD,  {fgColor:{rgb:ownerFillHex}}, LEFT),
+        cell(o.name,NORMAL,{fgColor:{rgb:ownerFillHex}}, LEFT),
+        cell(pct+'%',BOLD, pct===100?{fgColor:{rgb:'EAF3DE'}}:pct>0?{fgColor:{rgb:'E6F1FB'}}:null, CENTER),
+        cell(slipText,NORMAL,slipFill,CENTER),
+      ];
+
+      // Gantt cells
+      weekCols.forEach((w,wi)=>{
+        const inPlanned= psi!==null && pei!==null && wi>=psi && wi<=pei;
+        const inActual=  asi!==null && aei!==null && wi>=asi && wi<=aei;
+
+        let fill=null,txt='',font=NORMAL;
+        if(inActual&&inPlanned){
+          // Overlap: actual within planned = on schedule (use owner colour)
+          const hex={blaine:'7F77DD',margaret:'1D9E75',luann:'EF9F27',johnc:'378ADD',tonyw:'639922',arup:'BA7517'}[o.id]||'534AB7';
+          fill={fgColor:{rgb:hex}};txt='█';font={sz:8,color:{rgb:'FFFFFF'},bold:true};
+        } else if(inActual){
+          // Actual outside planned = late (red)
+          fill={fgColor:{rgb:'E24B4A'}};txt='█';font={sz:8,color:{rgb:'FFFFFF'},bold:true};
+        } else if(inPlanned){
+          // Planned only = not yet done (lighter owner colour)
+          fill={fgColor:{rgb:ownerFillHex}};txt='░';font={sz:8,color:{rgb:'888888'}};
+        } else {
+          fill={fgColor:{rgb:'FFFFFF'}};txt='';
+        }
+        row.push(cell(txt,font,fill,CENTER));
+      });
+
+      ganttRows.push(row);
+    });
+  });
+
+  // Build Gantt sheet
+  const ws2=XLSX.utils.aoa_to_sheet(ganttRows.map(r=>r.map(c=>c.v)));
+  ganttRows.forEach((row,ri)=>{
+    row.forEach((c,ci)=>{
+      const addr=XLSX.utils.encode_cell({r:ri,c:ci});
+      if(!ws2[addr]) ws2[addr]={v:c.v,t:typeof c.v==='number'?'n':'s'};
+      ws2[addr].s=c.s;
+    });
+  });
+
+  // Column widths: first 4 fixed cols + narrow week cols
+  ws2['!cols']=[{wch:26},{wch:20},{wch:8},{wch:10},...weekCols.map(()=>({wch:3}))];
+  ws2['!rows']=[{hpt:18},{hpt:14},{hpt:14},...OWNERS.flatMap(o=>o.channels.map(()=>({hpt:16})))];
+  ws2['!freeze']={xSplit:FIXED_COLS,ySplit:3};
+
+  XLSX.utils.book_append_sheet(wb,ws2,'Gantt Chart');
+
+  // ── LEGEND TAB ──────────────────────────────────────────────────────────────
+  const legendData=[
+    ['PMS Gantt Chart — Legend',''],
+    ['',''],
+    ['Gantt chart colour coding',''],
+    ['█  Owner colour (solid)','Actual dates overlap planned — on schedule'],
+    ['█  Red (solid)','Actual dates outside planned — late'],
+    ['░  Light owner colour','Planned period — not yet completed'],
+    ['   White','Outside all planned and actual periods'],
+    ['▼  Today column','Current date marker'],
+    ['',''],
+    ['Slippage column',''],
+    ['On time','Actual end = planned end'],
+    ['+Nd','Actual end N days after planned end (late)'],
+    ['-Nd','Actual end N days before planned end (early)'],
+    ['TBD','No actual dates entered yet'],
+    ['',''],
+    ['Status colours (Stage Data tab)',''],
+    ['Complete','Green fill'],
+    ['In progress','Blue fill'],
+    ['Not started','Light grey fill'],
+    ['N/A','Grey fill — stage not applicable to this channel'],
+    ['',''],
+    ['Owner colours',''],
+    ...OWNERS.map(o=>[o.name, o.channels.join(', ')]),
+  ];
+  // ── TAB 4: STAGE 8 QUESTIONNAIRE RESPONSES ────────────────────────────────────
+  const q8Headers=['Owner','Channel','Section','Question ID','Question','Answer','Notes'];
+  const q8Rows=[q8Headers.map(h=>cell(h,HEADER_FONT,{fgColor:{rgb:'1F3864'}},CENTER))];
+
+  const allQList=Q8_SECTIONS.flatMap(sec=>sec.questions.map(q=>({sec:sec.title,q})));
+  OWNERS.forEach(o=>{
+    o.channels.forEach(ch=>{
+      const ans=q8State[o.id]&&q8State[o.id][ch]?q8State[o.id][ch]:{};
+      const ownerFillHex={blaine:'EEEDFE',margaret:'E1F5EE',luann:'FAEEDA',johnc:'E6F1FB',tonyw:'EAF3DE',arup:'FDF3E3'}[o.id]||'FFFFFF';
+      allQList.forEach(({sec,q})=>{
+        const val=ans[q.id]||'';
+        const note=ans[q.id+'-note']||'';
+        q8Rows.push([
+          cell(o.name, BOLD,  {fgColor:{rgb:ownerFillHex}}, LEFT),
+          cell(ch,     NORMAL,{fgColor:{rgb:ownerFillHex}}, LEFT),
+          cell(sec,    NORMAL,null, LEFT),
+          cell(q.id,   NORMAL,null, CENTER),
+          cell(q.label,NORMAL,null, LEFT),
+          cell(val,    NORMAL,val?null:{fgColor:{rgb:'F5F4F1'}}, LEFT),
+          cell(note,   NORMAL,null, LEFT),
+        ]);
+      });
+    });
+  });
+
+  const ws5=XLSX.utils.aoa_to_sheet(q8Rows.map(r=>r.map(c=>c&&c.v!==undefined?c.v:'')));
+  q8Rows.forEach((row,ri)=>{
+    row.forEach((c,ci)=>{
+      if(!c||c.v===undefined)return;
+      const addr=XLSX.utils.encode_cell({r:ri,c:ci});
+      if(!ws5[addr])ws5[addr]={v:c.v,t:'s'};
+      ws5[addr].s=c.s;
+    });
+  });
+  ws5['!cols']=[{wch:20},{wch:26},{wch:28},{wch:8},{wch:50},{wch:40},{wch:30}];
+  ws5['!freeze']={xSplit:2,ySplit:1};
+  XLSX.utils.book_append_sheet(wb,ws5,'Stage 8 Questionnaire');
+
+  const ws4=XLSX.utils.aoa_to_sheet(legendData);
+  ws4['!cols']=[{wch:36},{wch:50}];
+  XLSX.utils.book_append_sheet(wb,ws4,'Legend');
+
+  // ── WRITE FILE ───────────────────────────────────────────────────────────────
+  const now=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  const ts=now.getFullYear()+pad(now.getMonth()+1)+pad(now.getDate())+'_'+pad(now.getHours())+pad(now.getMinutes())+pad(now.getSeconds());
+  XLSX.writeFile(wb,'PMS_Program_Tracker_'+ts+'.xlsx');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PROCESS FLOW
+// ═══════════════════════════════════════════════════════════════════════════════
+function buildProcessFlow(){
+  const pfChannels=[
+    {name:"CapEx",owner:"Luann Lafreniere",cls:"luann",categories:[],tbd:false,note:"Joint initiative — Blaine Emery (future)"},
+    {name:"Diesel – Propane",owner:"Margaret Graese",cls:"margaret",categories:[],tbd:false},
+    {name:"Energy",owner:"Margaret Graese",cls:"margaret",categories:[],tbd:false},
+    {name:"Lease",owner:"Blaine Emery",cls:"blaine",categories:[],tbd:false},
+    {name:"Mill Grease",owner:"Margaret Graese",cls:"margaret",categories:[],tbd:false},
+    {name:"MRO",owner:"Luann Lafreniere",cls:"luann",categories:[],tbd:false},
+    {name:"Packaging",owner:"Luann Lafreniere",cls:"luann",tbd:false,categories:[
+      {name:"Bag Films",sub:"Sub-categories to be added"},
+      {name:"Cover Bags",sub:"Sub-categories to be added"},
+      {name:"Pallets",sub:"Sub-categories to be added"},
+      {name:"Stretch Wrap",sub:"Sub-categories to be added"},
+    ]},
+    {name:"Pellet Mill Wear Items",owner:"Blaine Emery",cls:"blaine",categories:[],tbd:false},
+    {name:"Rentals",owner:"Luann Lafreniere",cls:"luann",categories:[],tbd:false},
+    {name:"Rolling Stock",owner:"Arup Basu (Temp)",cls:"arup-dot",categories:[],tbd:true},
+    {name:"Services & Subscriptions",owner:"Luann Lafreniere",cls:"luann",categories:[],tbd:false},
+    {name:"Transportation",owner:"John Crass",cls:"johnc",categories:[
+      {name:"3PL",sub:"Third-party logistics"},
+      {name:"Fleet",sub:"Sub-categories to be added"},
+      {name:"Non-Fleet",sub:"Sub-categories to be added"},
+    ],tbd:false},
+    {name:"Travel",owner:"Luann Lafreniere",cls:"luann",categories:[],tbd:false},
+    {name:"Warehousing",owner:"John Crass",cls:"johnc",categories:[
+      {name:"WoodPellets.com",sub:"Sub-categories to be added"},
+      {name:"Other Warehousing",sub:"Sub-categories to be added"},
+    ],tbd:false},
+    {name:"Wood Fiber",owner:"Tony Woods",cls:"tonyw",categories:[],tbd:false},
+  ];
+  const pfOwners=[
+    {name:"Blaine Emery",cls:"blaine"},{name:"Margaret Graese",cls:"margaret"},
+    {name:"Luann Lafreniere",cls:"luann"},{name:"John Crass",cls:"johnc"},
+    {name:"Tony Woods",cls:"tonyw"},{name:"Arup Basu",cls:"arup-dot"},
+  ];
+  const evalData=[
+    {ch:"CapEx",s:[2,2,2,2],p:"med"},{ch:"Diesel – Propane",s:[2,1,2,2],p:"high"},
+    {ch:"Energy",s:[2,2,1,1],p:"high"},{ch:"Lease",s:[3,3,3,2],p:"low"},
+    {ch:"Mill Grease",s:[3,2,3,3],p:"low"},{ch:"MRO",s:[2,2,2,1],p:"high"},
+    {ch:"Packaging",s:[2,1,2,2],p:"high"},{ch:"Pellet Mill Wear",s:[3,2,2,3],p:"med"},
+    {ch:"Rentals",s:[3,3,3,3],p:"low"},{ch:"Rolling Stock",s:[2,2,3,2],p:"med"},
+    {ch:"Services & Subs",s:[3,3,3,3],p:"low"},{ch:"Transportation",s:[2,1,2,1],p:"high"},
+    {ch:"Travel",s:[3,3,3,3],p:"low"},{ch:"Warehousing",s:[2,2,2,2],p:"med"},
+    {ch:"Wood Fiber",s:[1,1,1,2],p:"high"},
+  ];
+
+  let pfFilter='all',pfExpCh=null,pfCurStage='1a';
+
+  function pfGrid(gid,tid){
+    return`<div class="tab-row" id="${tid}">
+      <button class="tab-btn ${pfFilter==='all'?'active':''}" onclick="pfFilt('all',event,'${gid}','${tid}')">All</button>
+      ${pfOwners.map(o=>`<button class="tab-btn ${pfFilter===o.cls?'active':''}" onclick="pfFilt('${o.cls}',event,'${gid}','${tid}')">${o.name}</button>`).join('')}
+    </div>
+    <div class="channel-grid" id="${gid}">
+      ${pfChannels.map((c,i)=>`<div class="channel-card${c.tbd?' tbd-card':''}" data-cls="${c.cls}" onclick="pfTogCh(${i},'${gid}','${tid}')" style="${pfFilter!=='all'&&c.cls!==pfFilter?'display:none':''}">
+        <div class="channel-name">${c.name}${c.categories.length?` <span style="font-size:10px;font-weight:400;color:#5f5e5a;">(${c.categories.length})</span>`:''}</div>
+        <div class="channel-owner"><span class="owner-dot ${c.cls}"></span>${c.owner}</div>
+      </div>`).join('')}
+    </div>
+    ${pfExpCh!==null&&pfChannels[pfExpCh].categories.length?`
+    <div class="breakdown-panel visible">
+      <div style="font-size:12px;font-weight:600;margin-bottom:6px;">Categories — ${pfChannels[pfExpCh].name}</div>
+      <div style="font-size:10px;color:#5f5e5a;margin-bottom:8px;font-style:italic;">Sub-categories to be added.</div>
+      <div class="cat-grid">${pfChannels[pfExpCh].categories.map(c=>`<div class="cat-card"><div class="cat-card-name">${c.name}</div><div class="cat-card-sub">${c.sub}</div></div>`).join('')}</div>
+    </div>`:''}
+    <div class="legend">${pfOwners.map(o=>`<div class="legend-item"><span class="owner-dot ${o.cls}"></span>${o.name}</div>`).join('')}</div>`;
+  }
+
+  window.pfFilt=function(cls,e,gid,tid){
+    pfFilter=cls;
+    document.querySelectorAll('#'+tid+' .tab-btn').forEach(b=>b.classList.remove('active'));
+    e.target.classList.add('active');
+    document.querySelectorAll('#'+gid+' .channel-card').forEach(c=>{c.style.display=cls==='all'||c.dataset.cls===cls?'':'none';});
+  };
+  window.pfTogCh=function(i,gid,tid){
+    if(!pfChannels[i].categories.length)return;
+    pfExpCh=pfExpCh===i?null:i;
+    document.getElementById('pf-detail-content').innerHTML=pfContent[pfCurStage]();
+  };
+
+  function sb(avg){
+    const p=Math.round((avg/3)*100),cls=avg<=1.5?'low':avg<=2.2?'med':'high';
+    return`<div class="score-bar-wrap"><div class="score-bar ${cls}" style="width:${p}px"></div><span class="score-label ${cls}">${avg<=1.5?'Low':avg<=2.2?'Medium':'High'}</span></div>`;
+  }
+  function pb(p){return`<span class="priority-badge pb-${p}">${p==='high'?'Priority':p==='med'?'Monitor':'On track'}</span>`;}
+
+  const pfContent={
+    '1a':()=>'<div class="detail-title">Stage 1 — Channel definition ✓</div><div class="detail-rationale">15 procurement channels formally defined with scope, boundaries, and ownership.</div><div class="deliv-grid"><div class="deliv-card"><div class="deliv-card-title"><span class="deliv-done-dot"></span>15 channels defined</div></div><div class="deliv-card"><div class="deliv-card-title"><span class="deliv-done-dot"></span>Ownership assigned</div></div><div class="deliv-card warn"><div class="deliv-card-title"><span class="deliv-warn-dot"></span>Rolling Stock</div>Arup Basu temp until Sep 1, 2026</div></div>',
+    '1b':()=>'<div class="detail-title">Stage 2 — Resource leveling ✓</div><div class="detail-rationale">Channel owner workload assessed and balanced against FY2026 priorities.</div><div class="deliv-grid"><div class="deliv-card"><div class="deliv-card-title"><span class="deliv-done-dot"></span>Workload assessed</div></div><div class="deliv-card"><div class="deliv-card-title"><span class="deliv-done-dot"></span>Capacity plan agreed</div></div></div>',
+    '1c':()=>{const rows=evalData.map(d=>{const avg=(d.s.reduce((a,b)=>a+b,0)/d.s.length).toFixed(1);return`<tr><td>${d.ch}</td><td>${sb(parseFloat(avg))}</td><td>${pb(d.p)}</td></tr>`;}).join('');return`<div class="detail-title">Stage 3 — Channel evaluation ✓</div><div class="detail-rationale">15 channels scored across contract coverage, supplier management, spend visibility, and process maturity.</div><table class="score-table"><thead><tr><th>Channel</th><th>Score</th><th>Priority</th></tr></thead><tbody>${rows}</tbody></table><div class="score-note">Scale: 1=low · 2=developing · 3=established. Scores are illustrative.</div>`;},
+    '1d':()=>'<div class="detail-title">Stage 4 — Repository setup ✓</div><div class="detail-rationale">PMS folder on SharePoint with 15 channel sub-folders.</div><div class="deliv-grid"><div class="deliv-card"><div class="deliv-card-title"><span class="deliv-done-dot"></span>PMS folder created</div></div><div class="deliv-card"><div class="deliv-card-title"><span class="deliv-done-dot"></span>Access permissions set</div></div></div>',
+    '1e':()=>'<div class="detail-title">Stage 5 — Document archiving ✓</div><div class="detail-rationale">All contracts and procurement documents archived by channel.</div><div class="deliv-grid"><div class="deliv-card"><div class="deliv-card-title"><span class="deliv-done-dot"></span>Contracts archived</div></div><div class="deliv-card"><div class="deliv-card-title"><span class="deliv-done-dot"></span>Gaps identified</div></div></div>',
+    '1f':()=>'<div class="detail-title">Stage 6 — Supplier identification ✓</div><div class="detail-rationale">Strategic suppliers identified per channel and category.</div><div class="deliv-grid"><div class="deliv-card"><div class="deliv-card-title"><span class="deliv-done-dot"></span>Strategic suppliers mapped</div></div><div class="deliv-card"><div class="deliv-card-title"><span class="deliv-done-dot"></span>Supplier profiles created</div></div></div>',
+    '1g':()=>'<div class="detail-title">Stage 7 — Contract calendars ⧖ In progress</div><div class="detail-rationale">Contract calendars by channel, supplier, and region. 3–4 channels pending by May 15, 2026.</div><div class="deliv-grid"><div class="deliv-card"><div class="deliv-card-title"><span class="deliv-done-dot"></span>Majority complete</div></div><div class="deliv-card inprog"><div class="deliv-card-title"><span class="deliv-prog-dot"></span>3–4 channels pending</div>Due May 15</div></div>',
+    '2a':function(){pfCurStage='2a';return'<div class="detail-title">Stage 8 — Current state by channel</div><div class="detail-rationale">Establish a clear baseline for how each channel is managed today.</div>'+pfGrid('cg2a','t2a');},
+    '2b':function(){pfCurStage='2b';return'<div class="detail-title">Stage 9 — Category breakdown</div><div class="detail-rationale">Break each channel into logical categories and sub-categories.</div>'+pfGrid('cg2b','t2b');},
+    '2c':()=>'<div class="detail-title">Stage 10 — Strategic supplier risk scan</div><div class="detail-rationale">Focused scan to identify categories with highest risk. Intentionally broad — deep assessment in Stage 12.</div><div class="risk-grid"><div class="risk-card risk-high"><strong>Supply continuity</strong><br>Single-source, sole-qualified vendors</div><div class="risk-card risk-high"><strong>Supplier financial health</strong><br>Bankruptcy or exit risk</div><div class="risk-card risk-high"><strong>Geopolitical exposure</strong><br>At-risk sourcing regions</div><div class="risk-card risk-med"><strong>Capacity &amp; scalability</strong><br>Flex with volume needs</div><div class="risk-card risk-med"><strong>Relationship dependency</strong><br>Personal vs contractual</div><div class="risk-card risk-low"><strong>Switching cost</strong><br>Qualifying an alternate</div></div>',
+    '2d':()=>'<div class="detail-title">Stage 11 — Should costing</div><div class="detail-rationale">Bottoms-up cost models for highest-priority categories.</div><div class="sc-box"><div class="sc-title">What is should costing?</div><div style="font-size:11px;color:#5f5e5a;margin-bottom:8px;">A bottoms-up model of what a product or service should cost — independent of supplier quotes.</div><div class="sc-steps"><div class="sc-step"><div class="sc-num">1</div><div>Identify cost drivers: materials, labor, overhead, logistics, margin</div></div><div class="sc-step"><div class="sc-num">2</div><div>Benchmark against market indices</div></div><div class="sc-step"><div class="sc-num">3</div><div>Build cost model per category</div></div><div class="sc-step"><div class="sc-num">4</div><div>Compare should-cost to actual spend — identify gap</div></div><div class="sc-step"><div class="sc-num">5</div><div>Use in Stage 14 supplier negotiations</div></div></div></div>',
+    '3a':()=>'<div class="detail-title">Stage 12 — Strategic risk assessment</div><div class="detail-rationale">Deep, strategy-perspective risk assessment per category — builds on Stage 10 and Stage 11.</div><div class="risk-grid"><div class="risk-card risk-high"><strong>Category strategic importance</strong></div><div class="risk-card risk-high"><strong>Supply market complexity</strong></div><div class="risk-card risk-high"><strong>Cost &amp; value risk</strong></div><div class="risk-card risk-med"><strong>Innovation &amp; dependency</strong></div><div class="risk-card risk-med"><strong>Demand volatility</strong></div><div class="risk-card risk-low"><strong>ESG &amp; reputational</strong></div></div><div class="gate-box"><div class="gate-box-title">PM quality gate before Stage 13</div>Risk profiles must be complete before areas of concern work begins.</div>',
+    '3b':()=>'<div class="detail-title">Stage 13 — Areas of concern &amp; action planning</div><div class="detail-rationale">Identify, prioritize, and build mitigation plans for areas surfaced in Stage 12.</div><div class="action-grid"><div class="action-card"><div class="action-card-header"><div class="action-priority ap-critical"></div><div class="action-card-title">Single-source critical item</div></div><div class="action-card-body">Qualify second source within 90 days.</div></div><div class="action-card"><div class="action-card-header"><div class="action-priority ap-critical"></div><div class="action-card-title">Expired or lapsing contract</div></div><div class="action-card-body">Initiate renewal immediately.</div></div><div class="action-card"><div class="action-card-header"><div class="action-priority ap-high"></div><div class="action-card-title">Should-cost gap</div></div><div class="action-card-body">Schedule cost challenge negotiation.</div></div><div class="action-card"><div class="action-card-header"><div class="action-priority ap-high"></div><div class="action-card-title">No formal supplier review</div></div><div class="action-card-body">Schedule QBR within 30 days.</div></div></div>',
+    '3c':()=>'<div class="detail-title">Stage 14 — New sourcing strategy per category</div><div class="detail-rationale">Forward-looking strategy per category informed by Stages 11, 12, and 13.</div><div class="card-grid"><div class="p7-card"><div class="p7-card-title">Consolidate suppliers</div>Reduce tail spend</div><div class="p7-card"><div class="p7-card-title">Competitive RFQ / RFP</div>Re-tender where market shifted</div><div class="p7-card"><div class="p7-card-title">Long-term agreements</div>Lock volatile commodity prices</div><div class="p7-card"><div class="p7-card-title">Dual / multi-sourcing</div>Reduce single-source risk</div><div class="p7-card"><div class="p7-card-title">Specification review</div>Challenge over-engineering</div><div class="p7-card"><div class="p7-card-title">Preferred supplier program</div>Tiered partnerships</div></div>',
+    '3d':()=>'<div class="detail-title">Stage 15 — Sustaining</div><div class="detail-rationale">Embed governance and continuous improvement into every channel owner\'s routine.</div><div class="card-grid"><div class="p8-card"><div class="p8-card-title">Performance scorecards</div>Track savings and KPIs</div><div class="p8-card"><div class="p8-card-title">Areas of concern tracker</div>Monitor Stage 13 actions</div><div class="p8-card"><div class="p8-card-title">Supplier business reviews</div>Quarterly reviews</div><div class="p8-card"><div class="p8-card-title">Contract management</div>Monitor expiry windows</div><div class="p8-card"><div class="p8-card-title">Spend analytics</div>Actual vs contracted</div><div class="p8-card"><div class="p8-card-title">Continuous improvement</div>Savings and innovation</div></div>',
+  };
+
+  const allPFIds=['ph1a','ph1b','ph1c','ph1d','ph1e','ph1f','ph1g','ph2a','ph2b','ph2c','ph2d','ph3a','ph3b','ph3c','ph3d'];
+  const pfMap={'1a':'ph1a','1b':'ph1b','1c':'ph1c','1d':'ph1d','1e':'ph1e','1f':'ph1f','1g':'ph1g','2a':'ph2a','2b':'ph2b','2c':'ph2c','2d':'ph2d','3a':'ph3a','3b':'ph3b','3c':'ph3c','3d':'ph3d'};
+
+  window.pfShow=function(key){
+    allPFIds.forEach(id=>document.getElementById(id).classList.remove('active'));
+    document.getElementById(pfMap[key]).classList.add('active');
+    pfCurStage=key;
+    document.getElementById('pf-detail-content').innerHTML=pfContent[key]();
+  };
+  window.pfMile=function(id){
+    const el=document.getElementById(id);
+    const btn=el.previousElementSibling.querySelector('.milestone-toggle');
+    btn.textContent=el.classList.toggle('visible')?'Hide ▴':'Show ▾';
+  };
+
+  function arr(){return`<div class="phase-arrow"><svg width="16" height="16"><path d="M2 8L14 8M9 3L14 8L9 13" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;}
+
+  document.getElementById('pf-content').innerHTML=`
+<div style="font-size:11px;font-weight:600;color:#5f5e5a;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;">Process Flow Overview</div>
+<div class="kickoff-banner"><div class="kickoff-icon">🚀</div><div class="kickoff-content"><div class="kickoff-title">Program kickoff — before Stage 1</div><div class="kickoff-sub">Formal kickoff session — PM presents the 15-stage methodology, sets expectations, secures buy-in from all channel owners.</div><div class="kickoff-tags"><span class="kickoff-tag">All channel owners</span><span class="kickoff-tag">PM facilitated</span><span class="kickoff-tag">Half-day session</span><span class="kickoff-tag">Pre-condition to Stage 1</span></div></div></div>
+<div class="tbd-warning">⚠ <div><strong>Rolling Stock:</strong> Arup Basu acting as temporary owner until Sep 1, 2026. Permanent owner to be onboarded at that date.</div></div>
+
+<div class="phase-group">
+<div class="phase-banner phase-banner-1"><div class="phase-banner-left"><span class="phase-banner-label">Phase I — Foundation &amp; Repository Setup</span><span class="phase-banner-sub">Feb 2026 – May 15, 2026 · Stages 1–7 · All 15 channels</span></div><div class="phase-banner-right"><span class="phase-badge badge-partial">⧖ In progress</span><span class="phase-badge badge-1">~14 weeks</span></div></div>
+<div class="stage-row">
+<div class="stage-box s1a active" id="ph1a" onclick="pfShow('1a')"><div class="done-tick"><svg width="8" height="8" viewBox="0 0 8 8"><path d="M1 4L3 6L7 2" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="stage-num">Stage 1</div><div class="stage-title">Channel definition</div></div>
+${arr()}<div class="stage-box s1b" id="ph1b" onclick="pfShow('1b')"><div class="done-tick"><svg width="8" height="8" viewBox="0 0 8 8"><path d="M1 4L3 6L7 2" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="stage-num">Stage 2</div><div class="stage-title">Resource leveling</div></div>
+${arr()}<div class="stage-box s1c" id="ph1c" onclick="pfShow('1c')"><div class="done-tick"><svg width="8" height="8" viewBox="0 0 8 8"><path d="M1 4L3 6L7 2" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="stage-num">Stage 3</div><div class="stage-title">Channel evaluation</div></div>
+${arr()}<div class="stage-box s1d" id="ph1d" onclick="pfShow('1d')"><div class="done-tick"><svg width="8" height="8" viewBox="0 0 8 8"><path d="M1 4L3 6L7 2" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="stage-num">Stage 4</div><div class="stage-title">Repository setup</div></div>
+${arr()}<div class="stage-box s1e" id="ph1e" onclick="pfShow('1e')"><div class="done-tick"><svg width="8" height="8" viewBox="0 0 8 8"><path d="M1 4L3 6L7 2" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="stage-num">Stage 5</div><div class="stage-title">Document archiving</div></div>
+${arr()}<div class="stage-box s1f" id="ph1f" onclick="pfShow('1f')"><div class="done-tick"><svg width="8" height="8" viewBox="0 0 8 8"><path d="M1 4L3 6L7 2" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="stage-num">Stage 6</div><div class="stage-title">Supplier identification</div></div>
+${arr()}<div class="stage-box s1g" id="ph1g" onclick="pfShow('1g')"><div class="partial-tick">⧖</div><div class="stage-num">Stage 7</div><div class="stage-title">Contract calendars</div></div>
+</div>
+<div class="milestone-bar"><div class="milestone-bar-header" onclick="pfMile('m1')"><span>Phase I timeline</span><button class="milestone-toggle">Show ▾</button></div><div class="milestone-content" id="m1"><div class="week-grid"><div class="week-row"><div class="week-label">Pre-Feb</div><div class="week-track wt-p0"><div class="week-track-title">Program kickoff</div><span class="session-tag st-kickoff">Half-day — all owners</span></div></div><div class="week-row"><div class="week-label">Feb 2026</div><div class="week-track wt-p1"><div class="week-track-title">Stages 1–2 complete</div><span class="session-tag st-done">✓ Done</span></div></div><div class="week-row"><div class="week-label">Feb–Mar</div><div class="week-track wt-p1"><div class="week-track-title">Stages 3–5 complete</div><span class="session-tag st-done">✓ Done</span></div></div><div class="week-row"><div class="week-label">Mar–May</div><div class="week-track wt-p1"><div class="week-track-title">Stage 6 complete · Stage 7 in progress</div><span class="session-tag st-inprog">⧖ Due May 15</span></div></div><div class="week-row"><div class="week-label">May 15</div><div class="week-track wt-p1"><div class="week-track-title">Phase I full close-out</div><span class="session-tag st-milestone">Milestone</span></div></div></div></div></div>
+</div>
+
+<div class="overlap-notice">⧖ <div><strong>Planned overlap — May 2026:</strong> Phase II commences while Stage 7 finalises. No impact on Stages 8–9.</div></div>
+
+<div class="phase-group">
+<div class="phase-banner phase-banner-2"><div class="phase-banner-left"><span class="phase-banner-label">Phase II — Discovery &amp; Analysis</span><span class="phase-banner-sub">Commencing May 2026 · Stages 8–11 · 15 channels · 60 days</span></div><div class="phase-banner-right"><span class="phase-badge badge-inprog">Commencing May</span><span class="phase-badge badge-2">60 days</span></div></div>
+<div class="stage-row">
+<div class="stage-box p1s" id="ph2a" onclick="pfShow('2a')"><div class="stage-num">Stage 8</div><div class="stage-title">Current state</div><div class="stage-sub">By channel</div></div>
+${arr()}<div class="stage-box p2s" id="ph2b" onclick="pfShow('2b')"><div class="stage-num">Stage 9</div><div class="stage-title">Category breakdown</div><div class="stage-sub">Sub-categories</div></div>
+${arr()}<div class="stage-box p3s" id="ph2c" onclick="pfShow('2c')"><div class="stage-num">Stage 10</div><div class="stage-title">Supplier risk scan</div><div class="stage-sub">Priority scan</div></div>
+${arr()}<div class="stage-box p4s" id="ph2d" onclick="pfShow('2d')"><div class="stage-num">Stage 11</div><div class="stage-title">Should costing</div><div class="stage-sub">True cost model</div></div>
+</div>
+<div class="milestone-bar"><div class="milestone-bar-header" onclick="pfMile('m2')"><span>Phase II milestone rhythm</span><button class="milestone-toggle">Show ▾</button></div><div class="milestone-content" id="m2"><div class="week-grid"><div class="week-row"><div class="week-label">Wks 1–2</div><div class="week-track wt-p2"><div class="week-track-title">Kickoff &amp; Stage 8 — Current state</div><span class="session-tag st-working">Working session: template walkthrough</span></div></div><div class="week-row"><div class="week-label">Wks 3–4</div><div class="week-track wt-p2"><div class="week-track-title">Stage 9 — Category breakdown</div><span class="session-tag st-peer">Peer session: compare structures</span></div></div><div class="week-row"><div class="week-label">End Wk 4</div><div class="week-track wt-health"><div class="week-track-title">30-day health check — PM reviews all 15 channels</div><span class="session-tag st-health">Health check</span></div></div><div class="week-row"><div class="week-label">Wks 5–6</div><div class="week-track wt-p2"><div class="week-track-title">Stage 10 — Supplier risk scan</div><span class="session-tag st-peer">Peer session: share findings</span></div></div><div class="week-row"><div class="week-label">Wks 7–8</div><div class="week-track wt-p2"><div class="week-track-title">Stage 11 — Should costing</div><span class="session-tag st-working">Working session: cost methodology</span></div></div><div class="week-row"><div class="week-label">Day 60</div><div class="week-track wt-p2"><div class="week-track-title">Phase II close-out</div><span class="session-tag st-milestone">Milestone: PM sign-off</span></div></div></div></div></div>
+</div>
+
+<div class="between-phases"><svg width="16" height="16"><path d="M8 2L8 14M3 9L8 14L13 9" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Phase II complete → PM sign-off → Phase III Stage 12</div>
+
+<div class="phase-group">
+<div class="phase-banner phase-banner-3"><div class="phase-banner-left"><span class="phase-banner-label">Phase III — Strategy &amp; Governance</span><span class="phase-banner-sub">Stages 12–15 · Deep strategy · 90 days</span></div><div class="phase-banner-right"><span class="phase-badge badge-3">90 days</span></div></div>
+<div class="stage-row">
+<div class="stage-box p5s" id="ph3a" onclick="pfShow('3a')"><div class="stage-num">Stage 12</div><div class="stage-title">Strategic risk</div><div class="stage-sub">Deep assessment</div></div>
+${arr()}<div class="stage-box p6s" id="ph3b" onclick="pfShow('3b')"><div class="stage-num">Stage 13</div><div class="stage-title">Areas of concern</div><div class="stage-sub">Prioritize &amp; act</div></div>
+${arr()}<div class="stage-box p7s" id="ph3c" onclick="pfShow('3c')"><div class="stage-num">Stage 14</div><div class="stage-title">New strategy</div><div class="stage-sub">Per category</div></div>
+${arr()}<div class="stage-box p8s" id="ph3d" onclick="pfShow('3d')"><div class="stage-num">Stage 15</div><div class="stage-title">Sustaining</div><div class="stage-sub">Governance</div></div>
+</div>
+<div class="milestone-bar"><div class="milestone-bar-header" onclick="pfMile('m3')"><span>Phase III milestone rhythm</span><button class="milestone-toggle">Show ▾</button></div><div class="milestone-content" id="m3"><div class="week-grid"><div class="week-row"><div class="week-label">Wks 1–2</div><div class="week-track wt-p3"><div class="week-track-title">Phase III kickoff &amp; Stage 12 orientation</div><span class="session-tag st-working">Working session: risk framework</span></div></div><div class="week-row"><div class="week-label">Wks 3–5</div><div class="week-track wt-p3"><div class="week-track-title">Stage 12 — Deep strategic risk assessment</div><span class="session-tag st-peer">Bi-weekly peer sessions</span></div></div><div class="week-row"><div class="week-label">Wk 5</div><div class="week-track wt-p3"><div class="week-track-title">PM quality gate before Stage 13</div><span class="session-tag st-gate">Quality gate required</span></div></div><div class="week-row"><div class="week-label">Wks 6–7</div><div class="week-track wt-p3"><div class="week-track-title">Stage 13 — Areas of concern &amp; action planning</div><span class="session-tag st-peer">Peer session</span></div></div><div class="week-row"><div class="week-label">Wks 8–11</div><div class="week-track wt-p3"><div class="week-track-title">Stage 14 — New sourcing strategy per category</div><span class="session-tag st-peer">Peer sessions: draft strategies</span></div></div><div class="week-row"><div class="week-label">Wks 11–12</div><div class="week-track wt-p3"><div class="week-track-title">Stage 15 — Sustaining framework</div><span class="session-tag st-peer">Peer session: governance calendar</span></div></div><div class="week-row"><div class="week-label">Day 90</div><div class="week-track wt-p3"><div class="week-track-title">Final presentation &amp; program close-out</div><span class="session-tag st-milestone">Milestone: strategy sign-off</span></div></div></div></div></div>
+</div>
+
+<div class="detail-panel" id="pf-detail"><div id="pf-detail-content"></div></div>
+<div class="footer"><span>Procurement Management System · Channel Owner Process · FY2026</span><span>15 stages · 3 phases · 15 channels · ~7 months</span></div>`;
+
+  window.pfShow('1a');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// NAV + INIT
+// ═══════════════════════════════════════════════════════════════════════════════
+function switchTab(t){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.topbar-nav .tab').forEach(b=>b.classList.remove('active'));
+  const viewEl=document.getElementById('view-'+t);
+  if(viewEl) viewEl.classList.add('active');
+  const tabs=document.querySelectorAll('.topbar-nav .tab');
+  const idx=['pm','owner','channels','s8','flow','help'].indexOf(t);
+  if(idx>=0&&tabs[idx]) tabs[idx].classList.add('active');
+  if(t==='pm'){renderDeadlines();renderMetrics();renderOwnerGrid();renderTracker();
+    if(masterGanttExpanded) renderMasterGantt();
+    if(channelGanttExpanded) setTimeout(renderGantt,50);
+  }
+  if(t==='owner'){const id=document.getElementById('owner-sel').value;if(id)renderOwnerView(id);}
+  if(t==='channels'){renderChannels();}
+  if(t==='s8'){initS8Tab();}
+}
+
+function populateOwnerSelect(){
+  const sel=document.getElementById('owner-sel');
+  OWNERS.forEach(o=>{sel.innerHTML+=`<option value="${o.id}">${o.name}${o.temp?' (Temp — Rolling Stock)':''}</option>`;});
+}
+
+async function init(){
+  initState();
+  initQ8State();
+  await loadState();
+  await loadQ8State();
+  populateOwnerSelect();
+  buildProcessFlow();
+  if(restoreSession()){
+    showApp();
+  } else {
+    document.getElementById('main-topbar').style.display='none';
+    document.querySelectorAll('.view').forEach(v=>v.style.display='none');
+  }
+}
+init();
+</script>
+</body>
+</html>
